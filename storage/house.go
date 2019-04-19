@@ -34,7 +34,7 @@ const(
 		PRIMARY KEY(uid))
 		ENGINE=InnoDB DEFAULT CHARSET=utf8;`
 	insert_house = `INSERT INTO house_t (uid,name,country,province,city,address,layout, owner_id ) value (?,?,?,?,?,?,?,?)`
-	query_house_by_range = `SELECT * FROM house_t LIMIT ? OFFSET ?`
+	query_house_by_range = `SELECT * FROM house_t WHERE owner_id=? LIMIT ? OFFSET ?`
 	query_house = `SELECT * FROM house_t WHERE uid=?`
 	update_house_by_uid = `UPDATE house_t SET name=?,country=?,province=?,city=?,address=?,layout=?,owner_id=? WHERE uid=?`
 	delete_house_by_uid = `DELETE FROM house_t WHERE uid=?`
@@ -118,10 +118,10 @@ func UpdateHouse(
 	fmt.Println(aff_nums)
 }
 
-func QueryHouses(count uint, offset uint) []DbHouse{
+func QueryHouses(ownerId string, count uint, offset uint) []DbHouse{
 	
 	result := make([]DbHouse, 0)
-	rows, err := db.Query(query_house_by_range, count, offset)
+	rows, err := db.Query(query_house_by_range, ownerId, count, offset)
 	defer rows.Close()
 	Error.CheckErr(err)
 

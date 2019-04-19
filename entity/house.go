@@ -13,7 +13,8 @@ type House struct {
 
 type HouseSearch struct {
 	Offset 			uint	`json:"offset"` 
-	Length 			uint  	`json:"length"` 
+	Length 			uint  	`json:"length"`
+	OwnerId			string  `json:"owner_id"`
 }
 
 type AddHouseResult struct {

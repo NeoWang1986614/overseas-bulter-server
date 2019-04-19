@@ -76,7 +76,7 @@ func postImageHandler(w http.ResponseWriter, r *http.Request)  {
 
 	filePath := writeFile(fileContent);
 
-	rspString := "http://" + config.ServerListentIp + config.GenerateIntegratedUri("/image") + "?src=" + filePath
+	rspString := config.ImageServerAddress + config.GenerateIntegratedUri("/image") + "?src=" + filePath
 
 	fmt.Println(rspString)
 

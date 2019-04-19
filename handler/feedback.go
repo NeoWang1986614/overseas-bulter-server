@@ -15,8 +15,14 @@ import(
 const (
 	feedback_read 		= 0
 	feedback_unread 	= 1
-	feedback_unvalid 	= 2
 )
+
+const (
+	feedback_is_from_back_end 		= 1
+	feedback_not_from_back_end 		= 0
+)
+
+const feedback_unvalid 	= 2
 
 func FeedbackSearchHandler(w http.ResponseWriter, r *http.Request)  {
 	fmt.Println("feedback search handler")
@@ -85,14 +91,14 @@ func postFeedbackSearchHandler(w http.ResponseWriter, r *http.Request)  {
 	con,_:=ioutil.ReadAll(r.Body)
 	fmt.Println(string(con))
 
-	requestBody := &entity.FeedbackQuery{IsRead: feedback_unvalid}
+	requestBody := &entity.FeedbackQuery{IsRead: feedback_unvalid, IsFromBackEnd: feedback_unvalid}
 	err := json.Unmarshal(con, requestBody)
 	Error.CheckErr(err)
 	fmt.Print(requestBody)
 	
 	arr := make([]storage.DbFeedback, 0)
 	if(requestBody.IsRead == feedback_unvalid){
-		arr = storage.QueryFeedbackByOrderId(requestBody.Length, requestBody.Offset, requestBody.OrderId);
+		arr = storage.QueryFeedbackByOrderId(requestBody.Length, requestBody.Offset, requestBody.OrderId, requestBody.IsFromBackEnd);
 	}else{
 		arr = storage.QueryFeedbackByOrderIdIsRead(requestBody.Length, requestBody.Offset, requestBody.OrderId, requestBody.IsRead);
 	}

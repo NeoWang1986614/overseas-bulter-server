@@ -29,6 +29,7 @@ const(
 	insert_service = `INSERT INTO service_t (uid, type, layout, content, price) value (?,?,?,?,?)`
 	query_service = `SELECT * FROM service_t WHERE uid=?`
 	query_services_by_type = `SELECT * FROM service_t WHERE type=?`
+	query_services_by_type_layout = `SELECT * FROM service_t WHERE type=? AND layout=?`
 	update_service_by_id = `UPDATE service_t SET type=?, layout=?, content=?, price=? WHERE uid=?`
 )
 
@@ -81,6 +82,28 @@ func QueryServicesByType(serviceType string) []DbService{
 
 	result := make([]DbService, 0)
 	rows, err := db.Query(query_services_by_type, serviceType)
+	defer rows.Close()
+	Error.CheckErr(err)
+
+	for rows.Next() {
+		var item = &DbService{}
+		err = rows.Scan(
+			&item.Uid,
+			&item.Type,
+			&item.Layout,
+			&item.Content,
+			&item.Price,
+			&item.CreateTime)
+		Error.CheckErr(err)
+		result = append(result, *item)
+	}
+	return result;
+}
+
+func QueryServicesByTypeLayout(serviceType string, layout string) []DbService{
+
+	result := make([]DbService, 0)
+	rows, err := db.Query(query_services_by_type_layout, serviceType, layout)
 	defer rows.Close()
 	Error.CheckErr(err)
 

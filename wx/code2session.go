@@ -10,8 +10,6 @@ import(
 
 var (
 	getUrl = "https://api.weixin.qq.com/sns/jscode2session?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code"
-	appId = "wxea0f1d57aa8905b1"
-	appSecret = "c80f14e5928f20ac351abf7b7968d7ed"
 )
 
 type WxSession struct {
@@ -19,7 +17,7 @@ type WxSession struct {
 	Session_key 	string
 }
 
-func  Code2Session(code string)  *WxSession{
+func  Code2Session(code string, appId string, appSecret string)  *WxSession{
 	fmt.Println(code)
 	url := fmt.Sprintf(getUrl, appId, appSecret, code)
 	fmt.Println(url)

@@ -103,6 +103,17 @@ type OrderQueryRangePrice struct {
 	ToPrice				uint 	`json:"to_price"` 
 }
 
+type OrderQueryByOrderTypeGroup struct {
+	Offset 				uint	`json:"offset"` 
+	Length 				uint  	`json:"length"`
+	TypeGroup			[]string `json:"type_group"` 
+}
+
+type OrderQueryAll struct {
+	Offset 				uint	`json:"offset"` 
+	Length 				uint  	`json:"length"`
+}
+
 type OrderQueryResult struct {
 	Total				uint 	`json:"total"`
 	Entities			[]Order	`json:"entities"`

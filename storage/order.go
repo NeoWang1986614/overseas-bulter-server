@@ -1,5 +1,5 @@
 // Uid 				string	`json:"uid"`
-// 	Type				string	`json:"type"`
+// 	OrderType				string	`json:"OrderType"`
 // 	Content 			string  `json:"title"` 
 // 	HouseId 			string	`json:"house_id"`
 // 	Price				uint	`json:"price"`
@@ -21,7 +21,7 @@ import(
 
 type DbOrder struct{//13
 	Uid 			string
-	Type 			string
+	OrderType 		string
 	Content 		string
 	HouseCountry	string
 	HouseProvince	string
@@ -38,7 +38,7 @@ type DbOrder struct{//13
 const(
 	create_order_table_sql = `CREATE TABLE IF NOT EXISTS order_t(
 		uid VARCHAR(64) NOT NULL unique,
-		type VARCHAR(64) NULL DEFAULT NULL,
+		order_type VARCHAR(64) NULL DEFAULT NULL,
 		content VARCHAR(2048) NULL DEFAULT NULL,
 		house_country VARCHAR(64) NULL DEFAULT NULL,
 		house_province VARCHAR(64) NULL DEFAULT NULL,
@@ -52,10 +52,10 @@ const(
 		create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		PRIMARY KEY(uid))
 		ENGINE=InnoDB DEFAULT CHARSET=utf8;`
-	insert_order = `INSERT INTO order_t (uid,type,content,house_country,house_province, house_city, house_address, house_layout,price,status,placer_id, accepter_id) value (?,?,?,?,?,?,?,?,?,?,?,?)`
+	insert_order = `INSERT INTO order_t (uid,order_type,content,house_country,house_province, house_city, house_address, house_layout,price,status,placer_id, accepter_id) value (?,?,?,?,?,?,?,?,?,?,?,?)`
 	query_orders_by_status_placer = `SELECT * FROM order_t WHERE status=? AND placer_id=? LIMIT ? OFFSET ?`
 	query_order = `SELECT * FROM order_t WHERE uid=?`
-	update_order_by_id = `UPDATE order_t SET type=?,content=?,house_country=?,house_province=?, house_city=?, house_address=?, house_layout=?,price=?,status=?,placer_id=?,accepter_id=? WHERE uid=?`
+	update_order_by_id = `UPDATE order_t SET order_type=?,content=?,house_country=?,house_province=?, house_city=?, house_address=?, house_layout=?,price=?,status=?,placer_id=?,accepter_id=? WHERE uid=?`
 	delete_order_by_id = `DELETE FROM order_t WHERE uid=?`
 
 	query_order_by_user_ids = `SELECT * FROM order_t WHERE placer_id IN (%s) LIMIT ? OFFSET ?`
@@ -72,15 +72,18 @@ const(
 	query_order_count_by_address = `SELECT COUNT(*) FROM order_t WHERE house_country=%s AND house_province=%s AND house_city=%s`
 	query_order_by_layout_group = `SELECT * FROM order_t WHERE house_layout IN (%s) LIMIT ? OFFSET ?`
 	query_order_count_by_layout_group = `SELECT COUNT(*) FROM order_t WHERE house_layout IN (%s)`
-
 	query_order_below_price = `SELECT * FROM order_t WHERE price <= ? LIMIT ? OFFSET ?`
 	query_order_count_below_price = `SELECT COUNT(*) FROM order_t WHERE price <= ?`
-
 	query_order_above_price = `SELECT * FROM order_t WHERE price >= ? LIMIT ? OFFSET ?`
 	query_order_count_above_price = `SELECT COUNT(*) FROM order_t WHERE price >= ?`
-
 	query_order_range_price = `SELECT * FROM order_t WHERE price >= ? AND price <= ? LIMIT ? OFFSET ?`
 	query_order_count_range_price = `SELECT COUNT(*) FROM order_t WHERE price >= ? AND price <= ?`
+	
+	query_order_by_order_type_group = `SELECT * FROM order_t WHERE order_type IN (%s) LIMIT ? OFFSET ?`
+	query_order_count_by_order_type_group = `SELECT COUNT(*) FROM order_t WHERE order_type IN (%s)`
+
+	query_orders = `SELECT * FROM order_t LIMIT ? OFFSET ?`
+	query_order_count_all = `SELECT COUNT(*) FROM order_t`
 )
 
 func CreateOrderTable() {
@@ -102,7 +105,7 @@ func QueryOrder(id string) *DbOrder{
 	for rows.Next() {
 		err = rows.Scan(
 			&result.Uid, 
-			&result.Type, 
+			&result.OrderType, 
 			&result.Content,  
 			&result.HouseCountry, 
 			&result.HouseProvince, 
@@ -189,7 +192,7 @@ func QueryOrdersByStatusPlacerId(count uint, offset uint, status string, placerI
 		var item = &DbOrder{}
 		err = rows.Scan(
 			&item.Uid,
-			&item.Type,
+			&item.OrderType,
 			&item.Content,
 			&item.HouseCountry,
 			&item.HouseProvince,
@@ -247,7 +250,7 @@ func QueryOrderByUsers(userIds []string, offset uint, length uint) (uint,[]DbOrd
 		var item = &DbOrder{}
 		err = rows.Scan(
 			&item.Uid,
-			&item.Type,
+			&item.OrderType,
 			&item.Content,
 			&item.HouseCountry,
 			&item.HouseProvince,
@@ -290,7 +293,7 @@ func QueryOrderBeforeTime(time string, offset uint, length uint) (uint, []DbOrde
 		var item = &DbOrder{}
 		err = rows.Scan(
 			&item.Uid,
-			&item.Type,
+			&item.OrderType,
 			&item.Content,
 			&item.HouseCountry,
 			&item.HouseProvince,
@@ -333,7 +336,7 @@ func QueryOrderAfterTime(time string, offset uint, length uint) (uint,[]DbOrder)
 		var item = &DbOrder{}
 		err = rows.Scan(
 			&item.Uid,
-			&item.Type,
+			&item.OrderType,
 			&item.Content,
 			&item.HouseCountry,
 			&item.HouseProvince,
@@ -376,7 +379,7 @@ func QueryOrderRangeTime(fromTime string, toTime string, offset uint, length uin
 		var item = &DbOrder{}
 		err = rows.Scan(
 			&item.Uid,
-			&item.Type,
+			&item.OrderType,
 			&item.Content,
 			&item.HouseCountry,
 			&item.HouseProvince,
@@ -428,7 +431,7 @@ func QueryOrderByStatusGroup(statuses []string, offset uint, length uint) (uint,
 		var item = &DbOrder{}
 		err = rows.Scan(
 			&item.Uid,
-			&item.Type,
+			&item.OrderType,
 			&item.Content,
 			&item.HouseCountry,
 			&item.HouseProvince,
@@ -494,7 +497,7 @@ func QueryOrderByAddress(country string, province string, city string, offset ui
 		var item = &DbOrder{}
 		err = rows.Scan(
 			&item.Uid,
-			&item.Type,
+			&item.OrderType,
 			&item.Content,
 			&item.HouseCountry,
 			&item.HouseProvince,
@@ -545,7 +548,7 @@ func QueryOrderByLayoutGroup(layouts []string, offset uint, length uint) (uint,[
 		var item = &DbOrder{}
 		err = rows.Scan(
 			&item.Uid,
-			&item.Type,
+			&item.OrderType,
 			&item.Content,
 			&item.HouseCountry,
 			&item.HouseProvince,
@@ -588,7 +591,7 @@ func QueryOrderBelowPrice(price uint, offset uint, length uint) (uint, []DbOrder
 		var item = &DbOrder{}
 		err = rows.Scan(
 			&item.Uid,
-			&item.Type,
+			&item.OrderType,
 			&item.Content,
 			&item.HouseCountry,
 			&item.HouseProvince,
@@ -631,7 +634,7 @@ func QueryOrderAbovePrice(price uint, offset uint, length uint) (uint, []DbOrder
 		var item = &DbOrder{}
 		err = rows.Scan(
 			&item.Uid,
-			&item.Type,
+			&item.OrderType,
 			&item.Content,
 			&item.HouseCountry,
 			&item.HouseProvince,
@@ -674,7 +677,102 @@ func QueryOrderRangePrice(fromPrice uint, toPrice uint, offset uint, length uint
 		var item = &DbOrder{}
 		err = rows.Scan(
 			&item.Uid,
-			&item.Type,
+			&item.OrderType,
+			&item.Content,
+			&item.HouseCountry,
+			&item.HouseProvince,
+			&item.HouseCity,
+			&item.HouseAddress,
+			&item.HouseLayout,
+			&item.Price,
+			&item.Status,
+			&item.PlacerId,
+			&item.AccepterId,
+			&item.CreateTime)
+
+		Error.CheckErr(err)
+		result = append(result, *item)
+	}
+	// fmt.Println(result)
+	return total, result;
+	
+}
+
+func QueryOrderTotalCountByOrderTypeGroup(OrderTypes []string,) uint{
+
+	var temp = "'" + strings.Join(OrderTypes, "','") + "'"
+	querySql := fmt.Sprintf(query_order_count_by_order_type_group, temp)
+	fmt.Println(querySql)
+
+	var count uint = 0
+	err := db.QueryRow(querySql).Scan(&count)
+	Error.CheckErr(err)
+	fmt.Println(count)
+	return count;
+}
+
+func QueryOrderByOrderTypeGroup(OrderTypes []string, offset uint, length uint) (uint, []DbOrder){
+
+	total := QueryOrderTotalCountByOrderTypeGroup(OrderTypes);
+	fmt.Println("total = " , total);
+
+	var temp = "'" + strings.Join(OrderTypes, "','") + "'"
+	querySql := fmt.Sprintf(query_order_by_order_type_group, temp)
+	fmt.Println(querySql)
+
+	rows, err := db.Query(querySql, length, offset)
+	defer rows.Close()
+	Error.CheckErr(err)
+	
+	result := make([]DbOrder, 0)
+	for rows.Next() {
+		var item = &DbOrder{}
+		err = rows.Scan(
+			&item.Uid,
+			&item.OrderType,
+			&item.Content,
+			&item.HouseCountry,
+			&item.HouseProvince,
+			&item.HouseCity,
+			&item.HouseAddress,
+			&item.HouseLayout,
+			&item.Price,
+			&item.Status,
+			&item.PlacerId,
+			&item.AccepterId,
+			&item.CreateTime)
+
+		Error.CheckErr(err)
+		result = append(result, *item)
+	}
+	// fmt.Println(result)
+	return total, result;
+	
+}
+
+func QueryOrderTotalCountAll() uint{
+	var count uint = 0
+	err := db.QueryRow(query_order_count_all).Scan(&count)
+	Error.CheckErr(err)
+	fmt.Println(count)
+	return count;
+}
+
+func QueryOrders(offset uint, length uint) (uint, []DbOrder){
+
+	total := QueryOrderTotalCountAll()
+	fmt.Println("total = " , total);
+
+	rows, err := db.Query(query_orders, length, offset)
+	defer rows.Close()
+	Error.CheckErr(err)
+	
+	result := make([]DbOrder, 0)
+	for rows.Next() {
+		var item = &DbOrder{}
+		err = rows.Scan(
+			&item.Uid,
+			&item.OrderType,
 			&item.Content,
 			&item.HouseCountry,
 			&item.HouseProvince,

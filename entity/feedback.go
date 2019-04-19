@@ -14,4 +14,5 @@ type FeedbackQuery struct {
 	Length 			uint  	`json:"length"` 
 	OrderId 		string  `json:"order_id"`
 	IsRead 			uint  	`json:"is_read"` 
+	IsFromBackEnd 	uint  	`json:"is_from_back_end"` 
 }

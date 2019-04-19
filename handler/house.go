@@ -149,7 +149,7 @@ func postHouseSearchHandler(w http.ResponseWriter, r *http.Request)  {
 	fmt.Print(requestBody)
 
 	entities := make([]entity.House, 0)
-	arr := storage.QueryHouses(requestBody.Length, requestBody.Offset);
+	arr := storage.QueryHouses(requestBody.OwnerId, requestBody.Length, requestBody.Offset);
 
 	for i := 0 ; i < len(arr) ; i ++ {
 		var enti = &entity.House{

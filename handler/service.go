@@ -58,12 +58,17 @@ func postServiceSearchHandler(w http.ResponseWriter, r *http.Request)  {
 	con,_:=ioutil.ReadAll(r.Body)
 	fmt.Println(string(con))
 
-	requestBody := &entity.ServiceQuery{}
+	requestBody := &entity.ServiceQuery{Layout:""}
 	err := json.Unmarshal(con, requestBody)
 	Error.CheckErr(err)
 	fmt.Print(requestBody)
 
-	arr := storage.QueryServicesByType(requestBody.Type)
+	arr := make([]storage.DbService, 0)
+	if(0==len(requestBody.Layout)){
+		arr = storage.QueryServicesByType(requestBody.Type)
+	}else{
+		arr = storage.QueryServicesByTypeLayout(requestBody.Type, requestBody.Layout)
+	}
 
 	entities := make([]entity.Service, 0)
 	for i := 0 ; i < len(arr) ; i ++ {

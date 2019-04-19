@@ -10,5 +10,6 @@ type Service struct {
 }
 
 type ServiceQuery struct {
-	Type 			string	`json:"type"` 
+	Type 			string	`json:"type"`
+	Layout			string  `json:"layout"`
 }

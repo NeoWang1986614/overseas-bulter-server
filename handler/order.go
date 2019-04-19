@@ -26,6 +26,8 @@ const(
 	orderQueryTypeBelowPrice = "below_price"
 	orderQueryTypeAbovePrice = "above_price"
 	orderQueryTypeRangePrice = "range_price"
+	orderQueryTypeByOrderTypeGroup = "order_type_group"
+	orderQueryTypeAll = "all"
 )
 
 func OrderSearchAdvancedHandler(w http.ResponseWriter, r *http.Request)  {
@@ -97,7 +99,7 @@ func getOrderHandler(w http.ResponseWriter, r *http.Request)  {
 	enti := storage.QueryOrder(id[0])
 	order := &entity.Order{
 		Uid: enti.Uid,
-		Type: enti.Type,
+		Type: enti.OrderType,
 		Content: enti.Content,
 		HouseCountry: enti.HouseCountry,
 		HouseProvince: enti.HouseProvince,
@@ -145,6 +147,7 @@ func postOrderHandler(w http.ResponseWriter, r *http.Request)  {
 	rsp, err := json.Marshal(ret)
 	Error.CheckErr(err)
 	fmt.Print(string(rsp))
+	CORSHandle(w)
 	io.WriteString(w, string(rsp))
 }
 
@@ -175,6 +178,7 @@ func putOrderHandler(w http.ResponseWriter, r *http.Request)  {
 
 	ret := GetSuccessJsonString()
 	fmt.Println(ret)
+	CORSHandle(w)
 	io.WriteString(w, ret)
 }
 
@@ -198,7 +202,7 @@ func postOrderSearchHandler(w http.ResponseWriter, r *http.Request)  {
 	for i := 0 ; i < len(arr) ; i ++ {
 		var enti = &entity.Order{
 			arr[i].Uid,
-			arr[i].Type,
+			arr[i].OrderType,
 			arr[i].Content,
 			arr[i].HouseCountry,
 			arr[i].HouseProvince,
@@ -216,7 +220,7 @@ func postOrderSearchHandler(w http.ResponseWriter, r *http.Request)  {
 	rsp, err := json.Marshal(entities)
 	Error.CheckErr(err)
 	fmt.Print(string(rsp))
-
+	CORSHandle(w)
 	io.WriteString(w, string(rsp))
 
 }
@@ -231,6 +235,7 @@ func deleteOrderHandler(w http.ResponseWriter, r *http.Request)  {
 
 	ret := GetSuccessJsonString()
 	fmt.Println(ret)
+	CORSHandle(w)
 	io.WriteString(w, ret)
 }
 
@@ -284,6 +289,10 @@ func jsonUnmarshalQueryByType(queryType string, bodyByte []byte) string{
 			return OrderQueryTypeAbovePriceHandler(bodyByte)
 		case orderQueryTypeRangePrice:
 			return OrderQueryTypeRangePriceHandler(bodyByte)
+		case orderQueryTypeByOrderTypeGroup:
+			return OrderQueryTypeByOrderTypeGroupHandler(bodyByte)
+		case orderQueryTypeAll:
+			return OrderQueryTypeAllHandler(bodyByte)
 	}
 	return ""
 }
@@ -318,7 +327,7 @@ func OrderQueryTypeByIdCardNumberHandler(bodyByte []byte) string{
 	for i := 0 ; i < len(arr) ; i ++ {
 		var enti = &entity.Order{
 			arr[i].Uid,
-			arr[i].Type,
+			arr[i].OrderType,
 			arr[i].Content,
 			arr[i].HouseCountry,
 			arr[i].HouseProvince,
@@ -374,7 +383,7 @@ func OrderQueryTypeByPhoneNumberHandler(bodyByte []byte) string{
 	for i := 0 ; i < len(arr) ; i ++ {
 		var enti = &entity.Order{
 			arr[i].Uid,
-			arr[i].Type,
+			arr[i].OrderType,
 			arr[i].Content,
 			arr[i].HouseCountry,
 			arr[i].HouseProvince,
@@ -430,7 +439,7 @@ func OrderQueryTypeByRealNameHandler(bodyByte []byte) string{
 	for i := 0 ; i < len(arr) ; i ++ {
 		var enti = &entity.Order{
 			arr[i].Uid,
-			arr[i].Type,
+			arr[i].OrderType,
 			arr[i].Content,
 			arr[i].HouseCountry,
 			arr[i].HouseProvince,
@@ -470,7 +479,7 @@ func OrderQueryTypeBeforeTimeHandler(bodyByte []byte) string{
 	for i := 0 ; i < len(arr) ; i ++ {
 		var enti = &entity.Order{
 			arr[i].Uid,
-			arr[i].Type,
+			arr[i].OrderType,
 			arr[i].Content,
 			arr[i].HouseCountry,
 			arr[i].HouseProvince,
@@ -510,7 +519,7 @@ func OrderQueryTypeAfterTimeHandler(bodyByte []byte) string{
 	for i := 0 ; i < len(arr) ; i ++ {
 		var enti = &entity.Order{
 			arr[i].Uid,
-			arr[i].Type,
+			arr[i].OrderType,
 			arr[i].Content,
 			arr[i].HouseCountry,
 			arr[i].HouseProvince,
@@ -550,7 +559,7 @@ func OrderQueryTypeRangeTimeHandler(bodyByte []byte) string{
 	for i := 0 ; i < len(arr) ; i ++ {
 		var enti = &entity.Order{
 			arr[i].Uid,
-			arr[i].Type,
+			arr[i].OrderType,
 			arr[i].Content,
 			arr[i].HouseCountry,
 			arr[i].HouseProvince,
@@ -590,7 +599,7 @@ func OrderQueryTypeByStatusGroupHandler(bodyByte []byte) string{
 	for i := 0 ; i < len(arr) ; i ++ {
 		var enti = &entity.Order{
 			arr[i].Uid,
-			arr[i].Type,
+			arr[i].OrderType,
 			arr[i].Content,
 			arr[i].HouseCountry,
 			arr[i].HouseProvince,
@@ -631,7 +640,7 @@ func OrderQueryTypeByAddressHandler(bodyByte []byte) string{
 	for i := 0 ; i < len(arr) ; i ++ {
 		var enti = &entity.Order{
 			arr[i].Uid,
-			arr[i].Type,
+			arr[i].OrderType,
 			arr[i].Content,
 			arr[i].HouseCountry,
 			arr[i].HouseProvince,
@@ -672,7 +681,7 @@ func OrderQueryTypeByLayoutGroupHandler(bodyByte []byte) string{
 	for i := 0 ; i < len(arr) ; i ++ {
 		var enti = &entity.Order{
 			arr[i].Uid,
-			arr[i].Type,
+			arr[i].OrderType,
 			arr[i].Content,
 			arr[i].HouseCountry,
 			arr[i].HouseProvince,
@@ -712,7 +721,7 @@ func OrderQueryTypeBelowPriceHandler(bodyByte []byte) string{
 	for i := 0 ; i < len(arr) ; i ++ {
 		var enti = &entity.Order{
 			arr[i].Uid,
-			arr[i].Type,
+			arr[i].OrderType,
 			arr[i].Content,
 			arr[i].HouseCountry,
 			arr[i].HouseProvince,
@@ -752,7 +761,7 @@ func OrderQueryTypeAbovePriceHandler(bodyByte []byte) string{
 	for i := 0 ; i < len(arr) ; i ++ {
 		var enti = &entity.Order{
 			arr[i].Uid,
-			arr[i].Type,
+			arr[i].OrderType,
 			arr[i].Content,
 			arr[i].HouseCountry,
 			arr[i].HouseProvince,
@@ -792,7 +801,88 @@ func OrderQueryTypeRangePriceHandler(bodyByte []byte) string{
 	for i := 0 ; i < len(arr) ; i ++ {
 		var enti = &entity.Order{
 			arr[i].Uid,
-			arr[i].Type,
+			arr[i].OrderType,
+			arr[i].Content,
+			arr[i].HouseCountry,
+			arr[i].HouseProvince,
+			arr[i].HouseCity,
+			arr[i].HouseAddress,
+			arr[i].HouseLayout,
+			arr[i].Price,
+			arr[i].Status,
+			arr[i].PlacerId,
+			arr[i].AccepterId,
+			arr[i].CreateTime}
+		entities = append(entities, *enti)
+	}
+	qRet := &entity.OrderQueryResult{
+		total,
+		entities}
+	rsp, err := json.Marshal(qRet)
+	Error.CheckErr(err)
+	fmt.Print(string(rsp))
+
+	return string(rsp)
+}
+
+func OrderQueryTypeByOrderTypeGroupHandler(bodyByte []byte) string{
+	requestBody := &entity.OrderQueryByOrderTypeGroup{}
+
+	err := json.Unmarshal(bodyByte, requestBody)
+	Error.CheckErr(err)
+	fmt.Print(requestBody)
+
+	/*查询所有订单*/
+	total, arr := storage.QueryOrderByOrderTypeGroup(requestBody.TypeGroup, requestBody.Offset, requestBody.Length)
+
+	fmt.Println(arr)
+
+	entities := make([]entity.Order, 0)
+	for i := 0 ; i < len(arr) ; i ++ {
+		var enti = &entity.Order{
+			arr[i].Uid,
+			arr[i].OrderType,
+			arr[i].Content,
+			arr[i].HouseCountry,
+			arr[i].HouseProvince,
+			arr[i].HouseCity,
+			arr[i].HouseAddress,
+			arr[i].HouseLayout,
+			arr[i].Price,
+			arr[i].Status,
+			arr[i].PlacerId,
+			arr[i].AccepterId,
+			arr[i].CreateTime}
+		entities = append(entities, *enti)
+	}
+
+	qRet := &entity.OrderQueryResult{
+		total,
+		entities}
+	rsp, err := json.Marshal(qRet)
+	Error.CheckErr(err)
+	fmt.Print(string(rsp))
+
+	return string(rsp)
+}
+
+func OrderQueryTypeAllHandler(bodyByte []byte) string{
+	requestBody := &entity.OrderQueryAll{}
+
+	err := json.Unmarshal(bodyByte, requestBody)
+	Error.CheckErr(err)
+	fmt.Print(requestBody)
+
+	/*查询所有订单*/
+	total, arr := storage.QueryOrders(requestBody.Offset, requestBody.Length)
+
+	fmt.Println(arr)
+
+	entities := make([]entity.Order, 0)
+	for i := 0 ; i < len(arr) ; i ++ {
+		var enti = &entity.Order{
+			arr[i].Uid,
+			arr[i].OrderType,
 			arr[i].Content,
 			arr[i].HouseCountry,
 			arr[i].HouseProvince,

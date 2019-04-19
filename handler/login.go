@@ -12,10 +12,6 @@ import(
 	entity "overseas-bulter-server/entity"
 )
 
-type LoginRequestBody struct {
-	Code string
-}
-
 func LoginHandler(w http.ResponseWriter, r *http.Request)  {
 	fmt.Println("login handler")
 	fmt.Println(r.Method);
@@ -35,11 +31,11 @@ func LoginHandler(w http.ResponseWriter, r *http.Request)  {
 func postLoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	con,_:=ioutil.ReadAll(r.Body)
-	requestBody := &LoginRequestBody{}
+	requestBody := &entity.LoginRequest{}
 	
 	err := json.Unmarshal(con, requestBody)
 	Error.CheckErr(err)
-	sessionObject := wx.Code2Session(requestBody.Code)
+	sessionObject := wx.Code2Session(requestBody.Code, requestBody.AppId, requestBody.AppSecret)
 	fmt.Println(sessionObject.OpenId, sessionObject.Session_key)
 	storage.UpdateUserByWxOpenId(sessionObject.OpenId, sessionObject.Session_key)
 	user := storage.QueryUserByWxOpenId(sessionObject.OpenId)

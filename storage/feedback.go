@@ -57,7 +57,7 @@ func AddFeedback(
 	fmt.Println(aff_nums);
 }
 
-func QueryFeedbackByOrderId(count uint, offset uint, orderId string) []DbFeedback{
+func QueryFeedbackByOrderId(count uint, offset uint, orderId string, isFromBackend uint) []DbFeedback{
 	
 	result := make([]DbFeedback, 0)
 	rows, err := db.Query(query_feedbacks_by_order_id, orderId, count ,offset)
@@ -76,8 +76,10 @@ func QueryFeedbackByOrderId(count uint, offset uint, orderId string) []DbFeedbac
 		result = append(result, *item)
 	}
 
-	UpdateFeedbacksIsReadByOrderId(orderId);
-
+	if(0==isFromBackend){
+		UpdateFeedbacksIsReadByOrderId(orderId);
+	}
+	
 	fmt.Println("queyr feedback :")
 	fmt.Println(result)
 	return result

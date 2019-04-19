@@ -10,9 +10,9 @@ import(
 var db *sql.DB
 
 var (
-	dbHostIp="localhost:3306"//"129.28.57.139:3306"
+	dbHostIp="0.0.0.0:3306"//"129.28.57.139:3306"//"localhost:3306"//"0.0.0.0:3306"//
 	dbUserName="root"
-	dbPassword="scwy1986614"//"root123"
+	dbPassword="scwy1986614"//
 	dbName="overseas_bulter"
 )
 

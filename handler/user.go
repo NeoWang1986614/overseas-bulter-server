@@ -31,6 +31,9 @@ func UserHandler(w http.ResponseWriter, r *http.Request)  {
 		break;
 	case "DELETE":
 		break;
+	case "OPTIONS":
+		CORSHandle(w)
+		break;
 	}	
 }
 
@@ -70,6 +73,7 @@ func getUserHandler(w http.ResponseWriter, r *http.Request)  {
 	rsp, err := json.Marshal(user)
 	Error.CheckErr(err)
 	fmt.Print(string(rsp))
+	CORSHandle(w)
 	io.WriteString(w, string(rsp))
 }
 
@@ -92,6 +96,7 @@ func putUserHandler(w http.ResponseWriter, r *http.Request)  {
 
 	ret := GetSuccessJsonString()
 	fmt.Println(ret)
+	CORSHandle(w)
 	io.WriteString(w, ret)
 }
 
