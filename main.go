@@ -47,7 +47,11 @@ func main() {
 	http.HandleFunc(config.GenerateIntegratedUri("/feedback/search"), handler.FeedbackSearchHandler)
 	http.HandleFunc(config.GenerateIntegratedUri("/service"), handler.ServcieHandler)
 	http.HandleFunc(config.GenerateIntegratedUri("/service/search"), handler.ServcieSearchHandler)
+	http.HandleFunc(config.GenerateIntegratedUri("/employee"), handler.EmployeeHandler)
+	http.HandleFunc(config.GenerateIntegratedUri("/employee/search"), handler.EmployeeSearchHandler)
+	http.HandleFunc(config.GenerateIntegratedUri("/employee/check"), handler.EmployeeCheckHandler)
 	http.HandleFunc(config.GenerateIntegratedUri("/image"), handler.ImageHandler)
+	http.HandleFunc(config.GenerateIntegratedUri("/share"), handler.ShareHandler)
 
 	fmt.Println("start http server...")
 	// err := http.ListenAndServe(config.ServerListentIp,nil)

@@ -9,6 +9,13 @@ import(
 	Error "overseas-bulter-server/error"
 )
 
+func GetErrJsonString(code uint, message string) string{
+	ret, err := json.Marshal(entity.GetErr(code, message))
+	Error.CheckErr(err)
+	fmt.Print(string(ret))
+	return string(ret)
+}
+
 func GetSuccessJsonString() string{
 	ret, err := json.Marshal(entity.GetErrForSuccess())
 	Error.CheckErr(err)

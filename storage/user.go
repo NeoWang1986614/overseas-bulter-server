@@ -90,6 +90,7 @@ func QueryUserByWxOpenId(wxOpenId string) *DbUser{
 }
 
 func QueryUserByUid(uid string) *DbUser{
+	fmt.Println("QueryUserByUid , uid = ", uid)
 	result := &DbUser{}
 	rows, err := db.Query(query_user_by_uid, uid)
 	defer rows.Close()

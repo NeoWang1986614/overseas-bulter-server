@@ -13,10 +13,6 @@ import(
 	// entity "overseas-bulter-server/entity"
 )
 
-const(
-	UserQueryTypeIdCardNumber = `number`
-)
-
 func UserHandler(w http.ResponseWriter, r *http.Request)  {
 	fmt.Println("user handler")
 	fmt.Println(r.Method);
@@ -44,7 +40,6 @@ func UserSearchHandler(w http.ResponseWriter, r *http.Request)  {
 	case "GET":
 		break;
 	case "POST":
-		postSearchHandler(w, r)
 		break;
 	case "PUT":
 		break;
@@ -100,6 +95,3 @@ func putUserHandler(w http.ResponseWriter, r *http.Request)  {
 	io.WriteString(w, ret)
 }
 
-func postSearchHandler(w http.ResponseWriter, r *http.Request) {
-
-}

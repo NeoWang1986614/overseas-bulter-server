@@ -168,8 +168,6 @@ func postHouseSearchHandler(w http.ResponseWriter, r *http.Request)  {
 	Error.CheckErr(err)
 	fmt.Print(string(rsp))
 	CORSHandle(w)
-	// w.Header().Set("Access-Control-Allow-Origin", "*")
-	// w.Header().Set("Content-Type", "application/json;charset=utf-8")
 	io.WriteString(w, string(rsp))
 
 }

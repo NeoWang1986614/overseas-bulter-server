@@ -53,7 +53,7 @@ func ServcieSearchHandler(w http.ResponseWriter, r *http.Request)  {
 }
 
 func postServiceSearchHandler(w http.ResponseWriter, r *http.Request)  {
-	fmt.Println(r.Body);
+	fmt.Println("postServiceSearchHandler");
 
 	con,_:=ioutil.ReadAll(r.Body)
 	fmt.Println(string(con))

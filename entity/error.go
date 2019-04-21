@@ -10,3 +10,9 @@ func GetErrForSuccess() *Error{
 		Code: 0,
 		Message: "success"}
 }
+
+func GetErr(code uint, message string) *Error{
+	return &Error{
+		Code: code,
+		Message: message}
+}

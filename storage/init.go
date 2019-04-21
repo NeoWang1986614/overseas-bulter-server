@@ -12,7 +12,7 @@ var db *sql.DB
 var (
 	dbHostIp="0.0.0.0:3306"//"129.28.57.139:3306"//"localhost:3306"//"0.0.0.0:3306"//
 	dbUserName="root"
-	dbPassword="scwy1986614"//
+	dbPassword="scwy1986614"//"root123"
 	dbName="overseas_bulter"
 )
 
@@ -23,6 +23,7 @@ func createTables() {
 	CreateOrderTable()
 	CreateFeedbackTable()
 	CreateServiceTable()
+	CreateEmployeeTable()
 }
 
 func Init() {
