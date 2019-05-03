@@ -77,7 +77,10 @@ func postFeedbackHandler(w http.ResponseWriter, r *http.Request)  {
 	storage.AddFeedback(
 		requestBody.OrderId,
 		requestBody.AuthorId,
-		requestBody.Content)
+		requestBody.Content,
+		requestBody.Income,
+		requestBody.Outgoings,
+		requestBody.AccountingDate)
 
 	ret := GetSuccessJsonString()
 	fmt.Println(ret)
@@ -98,9 +101,15 @@ func postFeedbackSearchHandler(w http.ResponseWriter, r *http.Request)  {
 	
 	arr := make([]storage.DbFeedback, 0)
 	if(requestBody.IsRead == feedback_unvalid){
-		arr = storage.QueryFeedbackByOrderId(requestBody.Length, requestBody.Offset, requestBody.OrderId, requestBody.IsFromBackEnd);
+		arr = storage.QueryFeedbackByOrderId(requestBody.Length, 
+			requestBody.Offset, 
+			requestBody.OrderId,
+			requestBody.IsFromBackEnd);
 	}else{
-		arr = storage.QueryFeedbackByOrderIdIsRead(requestBody.Length, requestBody.Offset, requestBody.OrderId, requestBody.IsRead);
+		arr = storage.QueryFeedbackByOrderIdIsRead(requestBody.Length, 
+			requestBody.Offset, 
+			requestBody.OrderId, 
+			requestBody.IsRead);
 	}
 	
 	entities := make([]entity.Feedback, 0)
@@ -111,6 +120,10 @@ func postFeedbackSearchHandler(w http.ResponseWriter, r *http.Request)  {
 			arr[i].AuthorId,
 			arr[i].Content,
 			arr[i].IsRead,
+			arr[i].Income,
+			arr[i].Outgoings,
+			arr[i].AccountingDate,
+			arr[i].UpdateTime,
 			arr[i].CreateTime}
 		entities = append(entities, *enti)
 	}

@@ -47,8 +47,7 @@ func postLoginHandler(w http.ResponseWriter, r *http.Request) {
 	
 
 	rsp, _ := json.Marshal(userRsp)
-	
 	fmt.Println(string(rsp))
-
 	io.WriteString(w, string(rsp))
+
 }

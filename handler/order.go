@@ -96,21 +96,8 @@ func getOrderHandler(w http.ResponseWriter, r *http.Request)  {
 		panic("no uid exist in url param")
 	}
 	fmt.Println("id = ", id)
-	enti := storage.QueryOrder(id[0])
-	order := &entity.Order{
-		Uid: enti.Uid,
-		Type: enti.OrderType,
-		Content: enti.Content,
-		HouseCountry: enti.HouseCountry,
-		HouseProvince: enti.HouseProvince,
-		HouseCity: enti.HouseCity,
-		HouseAddress: enti.HouseAddress,
-		HouseLayout: enti.HouseLayout,
-		Price: enti.Price,
-		Status: enti.Status,
-		PlacerId: enti.PlacerId,
-		AccepterId: enti.AccepterId,
-		CreateTime: enti.CreateTime}
+	dbOrder := storage.QueryOrder(id[0])
+	order := entity.ConvertToOrderEntity(dbOrder)
 	rsp, err := json.Marshal(order)
 	Error.CheckErr(err)
 	fmt.Print(string(rsp))
@@ -132,10 +119,14 @@ func postOrderHandler(w http.ResponseWriter, r *http.Request)  {
 	id := storage.AddOrder(
 		requestBody.Type,
 		requestBody.Content,
-		requestBody.HouseCountry,
-		requestBody.HouseProvince,
-		requestBody.HouseCity,
-		requestBody.HouseAddress,
+		requestBody.HouseNation,
+		requestBody.HouseAdLevel1,
+		requestBody.HouseAdLevel2,
+		requestBody.HouseAdLevel3,
+		requestBody.HouseStreetName,
+		requestBody.HouseStreetNum,
+		requestBody.HouseBuildingNum,
+		requestBody.HouseRoomNum,
 		requestBody.HouseLayout,
 		requestBody.Price,
 		requestBody.Status,
@@ -166,10 +157,14 @@ func putOrderHandler(w http.ResponseWriter, r *http.Request)  {
 		requestBody.Uid,
 		requestBody.Type,
 		requestBody.Content,
-		requestBody.HouseCountry,
-		requestBody.HouseProvince,
-		requestBody.HouseCity,
-		requestBody.HouseAddress,
+		requestBody.HouseNation,
+		requestBody.HouseAdLevel1,
+		requestBody.HouseAdLevel2,
+		requestBody.HouseAdLevel3,
+		requestBody.HouseStreetName,
+		requestBody.HouseStreetNum,
+		requestBody.HouseBuildingNum,
+		requestBody.HouseRoomNum,
 		requestBody.HouseLayout,
 		requestBody.Price,
 		requestBody.Status,
@@ -200,20 +195,7 @@ func postOrderSearchHandler(w http.ResponseWriter, r *http.Request)  {
 
 	entities := make([]entity.Order, 0)
 	for i := 0 ; i < len(arr) ; i ++ {
-		var enti = &entity.Order{
-			arr[i].Uid,
-			arr[i].OrderType,
-			arr[i].Content,
-			arr[i].HouseCountry,
-			arr[i].HouseProvince,
-			arr[i].HouseCity,
-			arr[i].HouseAddress,
-			arr[i].HouseLayout,
-			arr[i].Price,
-			arr[i].Status,
-			arr[i].PlacerId,
-			arr[i].AccepterId,
-			arr[i].CreateTime}
+		var enti = entity.ConvertToOrderEntity(&arr[i])
 		entities = append(entities, *enti)
 	}
 
@@ -248,16 +230,9 @@ func postOrderSearchAdvancedHandler(w http.ResponseWriter, r *http.Request)  {
 	}
 	fmt.Println("query type : ", qType);
 
-
-	fmt.Println(r.Body);
-
 	con,_:=ioutil.ReadAll(r.Body)
-	fmt.Println(string(con))
 
 	rspString := jsonUnmarshalQueryByType(qType[0], con)
-
-	fmt.Println(rspString)
-
 	CORSHandle(w)
 	io.WriteString(w, rspString)
 
@@ -325,20 +300,7 @@ func OrderQueryTypeByIdCardNumberHandler(bodyByte []byte) string{
 
 	entities := make([]entity.Order, 0)
 	for i := 0 ; i < len(arr) ; i ++ {
-		var enti = &entity.Order{
-			arr[i].Uid,
-			arr[i].OrderType,
-			arr[i].Content,
-			arr[i].HouseCountry,
-			arr[i].HouseProvince,
-			arr[i].HouseCity,
-			arr[i].HouseAddress,
-			arr[i].HouseLayout,
-			arr[i].Price,
-			arr[i].Status,
-			arr[i].PlacerId,
-			arr[i].AccepterId,
-			arr[i].CreateTime}
+		var enti = entity.ConvertToOrderEntity(&arr[i])
 		entities = append(entities, *enti)
 	}
 
@@ -381,20 +343,7 @@ func OrderQueryTypeByPhoneNumberHandler(bodyByte []byte) string{
 
 	entities := make([]entity.Order, 0)
 	for i := 0 ; i < len(arr) ; i ++ {
-		var enti = &entity.Order{
-			arr[i].Uid,
-			arr[i].OrderType,
-			arr[i].Content,
-			arr[i].HouseCountry,
-			arr[i].HouseProvince,
-			arr[i].HouseCity,
-			arr[i].HouseAddress,
-			arr[i].HouseLayout,
-			arr[i].Price,
-			arr[i].Status,
-			arr[i].PlacerId,
-			arr[i].AccepterId,
-			arr[i].CreateTime}
+		var enti = entity.ConvertToOrderEntity(&arr[i])
 		entities = append(entities, *enti)
 	}
 
@@ -437,20 +386,7 @@ func OrderQueryTypeByRealNameHandler(bodyByte []byte) string{
 
 	entities := make([]entity.Order, 0)
 	for i := 0 ; i < len(arr) ; i ++ {
-		var enti = &entity.Order{
-			arr[i].Uid,
-			arr[i].OrderType,
-			arr[i].Content,
-			arr[i].HouseCountry,
-			arr[i].HouseProvince,
-			arr[i].HouseCity,
-			arr[i].HouseAddress,
-			arr[i].HouseLayout,
-			arr[i].Price,
-			arr[i].Status,
-			arr[i].PlacerId,
-			arr[i].AccepterId,
-			arr[i].CreateTime}
+		var enti = entity.ConvertToOrderEntity(&arr[i])
 		entities = append(entities, *enti)
 	}
 	qRet := &entity.OrderQueryResult{
@@ -477,20 +413,7 @@ func OrderQueryTypeBeforeTimeHandler(bodyByte []byte) string{
 
 	entities := make([]entity.Order, 0)
 	for i := 0 ; i < len(arr) ; i ++ {
-		var enti = &entity.Order{
-			arr[i].Uid,
-			arr[i].OrderType,
-			arr[i].Content,
-			arr[i].HouseCountry,
-			arr[i].HouseProvince,
-			arr[i].HouseCity,
-			arr[i].HouseAddress,
-			arr[i].HouseLayout,
-			arr[i].Price,
-			arr[i].Status,
-			arr[i].PlacerId,
-			arr[i].AccepterId,
-			arr[i].CreateTime}
+		var enti = entity.ConvertToOrderEntity(&arr[i])
 		entities = append(entities, *enti)
 	}
 	qRet := &entity.OrderQueryResult{
@@ -517,20 +440,7 @@ func OrderQueryTypeAfterTimeHandler(bodyByte []byte) string{
 
 	entities := make([]entity.Order, 0)
 	for i := 0 ; i < len(arr) ; i ++ {
-		var enti = &entity.Order{
-			arr[i].Uid,
-			arr[i].OrderType,
-			arr[i].Content,
-			arr[i].HouseCountry,
-			arr[i].HouseProvince,
-			arr[i].HouseCity,
-			arr[i].HouseAddress,
-			arr[i].HouseLayout,
-			arr[i].Price,
-			arr[i].Status,
-			arr[i].PlacerId,
-			arr[i].AccepterId,
-			arr[i].CreateTime}
+		var enti = entity.ConvertToOrderEntity(&arr[i])
 		entities = append(entities, *enti)
 	}
 	qRet := &entity.OrderQueryResult{
@@ -557,20 +467,7 @@ func OrderQueryTypeRangeTimeHandler(bodyByte []byte) string{
 
 	entities := make([]entity.Order, 0)
 	for i := 0 ; i < len(arr) ; i ++ {
-		var enti = &entity.Order{
-			arr[i].Uid,
-			arr[i].OrderType,
-			arr[i].Content,
-			arr[i].HouseCountry,
-			arr[i].HouseProvince,
-			arr[i].HouseCity,
-			arr[i].HouseAddress,
-			arr[i].HouseLayout,
-			arr[i].Price,
-			arr[i].Status,
-			arr[i].PlacerId,
-			arr[i].AccepterId,
-			arr[i].CreateTime}
+		var enti = entity.ConvertToOrderEntity(&arr[i])
 		entities = append(entities, *enti)
 	}
 	qRet := &entity.OrderQueryResult{
@@ -597,20 +494,7 @@ func OrderQueryTypeByStatusGroupHandler(bodyByte []byte) string{
 
 	entities := make([]entity.Order, 0)
 	for i := 0 ; i < len(arr) ; i ++ {
-		var enti = &entity.Order{
-			arr[i].Uid,
-			arr[i].OrderType,
-			arr[i].Content,
-			arr[i].HouseCountry,
-			arr[i].HouseProvince,
-			arr[i].HouseCity,
-			arr[i].HouseAddress,
-			arr[i].HouseLayout,
-			arr[i].Price,
-			arr[i].Status,
-			arr[i].PlacerId,
-			arr[i].AccepterId,
-			arr[i].CreateTime}
+		var enti = entity.ConvertToOrderEntity(&arr[i])
 		entities = append(entities, *enti)
 	}
 
@@ -638,20 +522,7 @@ func OrderQueryTypeByAddressHandler(bodyByte []byte) string{
 
 	entities := make([]entity.Order, 0)
 	for i := 0 ; i < len(arr) ; i ++ {
-		var enti = &entity.Order{
-			arr[i].Uid,
-			arr[i].OrderType,
-			arr[i].Content,
-			arr[i].HouseCountry,
-			arr[i].HouseProvince,
-			arr[i].HouseCity,
-			arr[i].HouseAddress,
-			arr[i].HouseLayout,
-			arr[i].Price,
-			arr[i].Status,
-			arr[i].PlacerId,
-			arr[i].AccepterId,
-			arr[i].CreateTime}
+		var enti = entity.ConvertToOrderEntity(&arr[i])
 		entities = append(entities, *enti)
 	}
 	qRet := &entity.OrderQueryResult{
@@ -679,20 +550,7 @@ func OrderQueryTypeByLayoutGroupHandler(bodyByte []byte) string{
 
 	entities := make([]entity.Order, 0)
 	for i := 0 ; i < len(arr) ; i ++ {
-		var enti = &entity.Order{
-			arr[i].Uid,
-			arr[i].OrderType,
-			arr[i].Content,
-			arr[i].HouseCountry,
-			arr[i].HouseProvince,
-			arr[i].HouseCity,
-			arr[i].HouseAddress,
-			arr[i].HouseLayout,
-			arr[i].Price,
-			arr[i].Status,
-			arr[i].PlacerId,
-			arr[i].AccepterId,
-			arr[i].CreateTime}
+		var enti = entity.ConvertToOrderEntity(&arr[i])
 		entities = append(entities, *enti)
 	}
 	qRet := &entity.OrderQueryResult{
@@ -719,20 +577,7 @@ func OrderQueryTypeBelowPriceHandler(bodyByte []byte) string{
 
 	entities := make([]entity.Order, 0)
 	for i := 0 ; i < len(arr) ; i ++ {
-		var enti = &entity.Order{
-			arr[i].Uid,
-			arr[i].OrderType,
-			arr[i].Content,
-			arr[i].HouseCountry,
-			arr[i].HouseProvince,
-			arr[i].HouseCity,
-			arr[i].HouseAddress,
-			arr[i].HouseLayout,
-			arr[i].Price,
-			arr[i].Status,
-			arr[i].PlacerId,
-			arr[i].AccepterId,
-			arr[i].CreateTime}
+		var enti = entity.ConvertToOrderEntity(&arr[i])
 		entities = append(entities, *enti)
 	}
 	qRet := &entity.OrderQueryResult{
@@ -759,20 +604,7 @@ func OrderQueryTypeAbovePriceHandler(bodyByte []byte) string{
 
 	entities := make([]entity.Order, 0)
 	for i := 0 ; i < len(arr) ; i ++ {
-		var enti = &entity.Order{
-			arr[i].Uid,
-			arr[i].OrderType,
-			arr[i].Content,
-			arr[i].HouseCountry,
-			arr[i].HouseProvince,
-			arr[i].HouseCity,
-			arr[i].HouseAddress,
-			arr[i].HouseLayout,
-			arr[i].Price,
-			arr[i].Status,
-			arr[i].PlacerId,
-			arr[i].AccepterId,
-			arr[i].CreateTime}
+		var enti = entity.ConvertToOrderEntity(&arr[i])
 		entities = append(entities, *enti)
 	}
 	qRet := &entity.OrderQueryResult{
@@ -799,20 +631,7 @@ func OrderQueryTypeRangePriceHandler(bodyByte []byte) string{
 
 	entities := make([]entity.Order, 0)
 	for i := 0 ; i < len(arr) ; i ++ {
-		var enti = &entity.Order{
-			arr[i].Uid,
-			arr[i].OrderType,
-			arr[i].Content,
-			arr[i].HouseCountry,
-			arr[i].HouseProvince,
-			arr[i].HouseCity,
-			arr[i].HouseAddress,
-			arr[i].HouseLayout,
-			arr[i].Price,
-			arr[i].Status,
-			arr[i].PlacerId,
-			arr[i].AccepterId,
-			arr[i].CreateTime}
+		var enti = entity.ConvertToOrderEntity(&arr[i])
 		entities = append(entities, *enti)
 	}
 	qRet := &entity.OrderQueryResult{
@@ -839,20 +658,7 @@ func OrderQueryTypeByOrderTypeGroupHandler(bodyByte []byte) string{
 
 	entities := make([]entity.Order, 0)
 	for i := 0 ; i < len(arr) ; i ++ {
-		var enti = &entity.Order{
-			arr[i].Uid,
-			arr[i].OrderType,
-			arr[i].Content,
-			arr[i].HouseCountry,
-			arr[i].HouseProvince,
-			arr[i].HouseCity,
-			arr[i].HouseAddress,
-			arr[i].HouseLayout,
-			arr[i].Price,
-			arr[i].Status,
-			arr[i].PlacerId,
-			arr[i].AccepterId,
-			arr[i].CreateTime}
+		var enti = entity.ConvertToOrderEntity(&arr[i])
 		entities = append(entities, *enti)
 	}
 
@@ -880,20 +686,7 @@ func OrderQueryTypeAllHandler(bodyByte []byte) string{
 
 	entities := make([]entity.Order, 0)
 	for i := 0 ; i < len(arr) ; i ++ {
-		var enti = &entity.Order{
-			arr[i].Uid,
-			arr[i].OrderType,
-			arr[i].Content,
-			arr[i].HouseCountry,
-			arr[i].HouseProvince,
-			arr[i].HouseCity,
-			arr[i].HouseAddress,
-			arr[i].HouseLayout,
-			arr[i].Price,
-			arr[i].Status,
-			arr[i].PlacerId,
-			arr[i].AccepterId,
-			arr[i].CreateTime}
+		var enti = entity.ConvertToOrderEntity(&arr[i])
 		entities = append(entities, *enti)
 	}
 	qRet := &entity.OrderQueryResult{

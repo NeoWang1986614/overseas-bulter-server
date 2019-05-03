@@ -6,6 +6,10 @@ type Feedback struct {
 	AuthorId			string	`json:"author_id"`
 	Content 			string  `json:"content"` 
 	IsRead 				uint  	`json:"is_read"` 
+	Income				float32 `json:"income"`
+	Outgoings			float32 `json:"outgoings"`
+	AccountingDate		string 	`json:"accounting_date"`
+	UpdateTime			string	`json:"update_time"`
 	CreateTime			string	`json:"create_time"`
 }
 

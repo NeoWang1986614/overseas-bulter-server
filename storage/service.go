@@ -26,7 +26,7 @@ const(
 		create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		PRIMARY KEY(uid))
 		ENGINE=InnoDB DEFAULT CHARSET=utf8;`
-	insert_service = `INSERT INTO service_t (uid, type, layout, content, price) value (?,?,?,?,?)`
+	insert_service = `INSERT INTO service_t (uid, type, layout, content, price) VALUE (?,?,?,?,?)`
 	query_service = `SELECT * FROM service_t WHERE uid=?`
 	query_services_by_type = `SELECT * FROM service_t WHERE type=?`
 	query_services_by_type_layout = `SELECT * FROM service_t WHERE type=? AND layout=?`

@@ -8,35 +8,78 @@ import(
 	Uuid "overseas-bulter-server/uuid"
 )
 
-type DbHouse struct{
-	Uid 		string
-	Name 		string
-	Country 	string
-	Province 	string
-	City 		string
-	Address 	string
-	Layout 		string
-	OwnerId		string
-	CreateTime	string
+type DbHouse struct{//16
+	Uid 			string
+	Name 			string
+	Lat				string
+	Lng				string
+	AdLevel1		string
+	AdLevel2		string
+	AdLevel3		string
+	Locality		string
+	Nation 			string
+	StreetName		string
+	StreetNum		string
+	BuildingNum 	string
+	RoomNum			string
+	Layout 			string
+	OwnerId			string
+	CreateTime		string
 }
 
 const(
 	create_house_table_sql = `CREATE TABLE IF NOT EXISTS house_t(
 		uid VARCHAR(64) NOT NULL unique,
 		name VARCHAR(64) NULL DEFAULT NULL,
-		country VARCHAR(64) NULL DEFAULT NULL,
-		province VARCHAR(64) NULL DEFAULT NULL,
-		city VARCHAR(64) NULL DEFAULT NULL,
-		address VARCHAR(1024) NULL DEFAULT NULL,
+		lat VARCHAR(64) NULL DEFAULT NULL,
+		lng VARCHAR(64) NULL DEFAULT NULL,
+		ad_level_1 VARCHAR(64) NULL DEFAULT NULL,
+		ad_level_2 VARCHAR(64) NULL DEFAULT NULL,
+		ad_level_3 VARCHAR(64) NULL DEFAULT NULL,
+		locality VARCHAR(64) NULL DEFAULT NULL,
+		nation VARCHAR(64) NULL DEFAULT NULL,
+		street_name VARCHAR(64) NULL DEFAULT NULL,
+		street_num VARCHAR(64) NULL DEFAULT NULL,
+		building_num VARCHAR(64) NULL DEFAULT NULL,
+		room_num VARCHAR(64) NULL DEFAULT NULL,
 		layout VARCHAR(64) NULL DEFAULT NULL,
 		owner_id VARCHAR(64) NULL DEFAULT NULL,
 		create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		PRIMARY KEY(uid))
 		ENGINE=InnoDB DEFAULT CHARSET=utf8;`
-	insert_house = `INSERT INTO house_t (uid,name,country,province,city,address,layout, owner_id ) value (?,?,?,?,?,?,?,?)`
+	insert_house = `INSERT INTO house_t (
+						uid,
+						name,
+						lat,
+						lng,
+						ad_level_1,
+						ad_level_2,
+						ad_level_3,
+						locality,
+						nation,
+						street_name,
+						street_num,
+						building_num,
+						room_num,
+						layout,
+						owner_id) VALUE (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
 	query_house_by_range = `SELECT * FROM house_t WHERE owner_id=? LIMIT ? OFFSET ?`
 	query_house = `SELECT * FROM house_t WHERE uid=?`
-	update_house_by_uid = `UPDATE house_t SET name=?,country=?,province=?,city=?,address=?,layout=?,owner_id=? WHERE uid=?`
+	update_house_by_uid = `UPDATE house_t SET 
+	name=?,
+	lat=?, 
+	lng=?,
+	ad_level_1=?,
+	ad_level_2=?,
+	ad_level_3=?,
+	locality=?,
+	nation=?,
+	street_name=?,
+	street_num=?,
+	building_num=?,
+	room_num=?,
+	layout=?,
+	owner_id=? WHERE uid=?`
 	delete_house_by_uid = `DELETE FROM house_t WHERE uid=?`
 )
 
@@ -60,10 +103,17 @@ func QueryHouse(id string) *DbHouse{
 		err = rows.Scan(
 			&result.Uid, 
 			&result.Name, 
-			&result.Country,  
-			&result.Province, 
-			&result.City, 
-			&result.Address, 
+			&result.Lat,  
+			&result.Lng, 
+			&result.AdLevel1, 
+			&result.AdLevel2, 
+			&result.AdLevel3, 
+			&result.Locality, 
+			&result.Nation, 
+			&result.StreetName,
+			&result.StreetNum,
+			&result.BuildingNum,
+			&result.RoomNum, 
 			&result.Layout,
 			&result.OwnerId,
 			&result.CreateTime)
@@ -76,16 +126,38 @@ func QueryHouse(id string) *DbHouse{
 
 func AddHouse(
 	name string,
-	country string,
-	province string,
-	city string,
-	address string,
+	lat string,
+	lng string,
+	adLevel1 string,
+	adLevel2 string,
+	adLevel3 string,
+	locality string,
+	nation string,
+	streetName string,
+	streetNum string,
+	buildingNum string,
+	roomNum string,
 	layout string,
 	ownerId string) string{
 	uuid := Uuid.GenerateNextUuid()
 	fmt.Println(uuid)
 	//更新数据
-	ret, err := db.Exec(insert_house ,uuid, name, country, province, city, address, layout, ownerId);
+	ret, err := db.Exec(insert_house,
+		uuid, 
+		name, 
+		lat, 
+		lng,
+		adLevel1,
+		adLevel2,
+		adLevel3,
+		locality,
+		nation,
+		streetName,
+		streetNum,
+		buildingNum,
+		roomNum,
+		layout,
+		ownerId);
 	Error.CheckErr(err)
 	aff_nums, _ := ret.RowsAffected();
 	fmt.Println("insert house success !")
@@ -96,19 +168,33 @@ func AddHouse(
 func UpdateHouse(
 	uid string,
 	name string,
-	country string,
-	province string,
-	city string,
-	address string,
+	lat string,
+	lng string,
+	adLevel1 string,
+	adLevel2 string,
+	adLevel3 string,
+	locality string,
+	nation string,
+	streetName string,
+	streetNum string,
+	buildingNum string,
+	roomNum string,
 	layout string,
 	ownerId string){
 	
 	ret, err := db.Exec(update_house_by_uid, 
-		name, 
-		country, 
-		province, 
-		city, 
-		address, 
+		name,
+		lat, 
+		lng,
+		adLevel1,
+		adLevel2,
+		adLevel3,
+		locality,
+		nation,
+		streetName,
+		streetNum,
+		buildingNum,
+		roomNum, 
 		layout, 
 		ownerId, 
 		uid)
@@ -124,16 +210,22 @@ func QueryHouses(ownerId string, count uint, offset uint) []DbHouse{
 	rows, err := db.Query(query_house_by_range, ownerId, count, offset)
 	defer rows.Close()
 	Error.CheckErr(err)
-
 	for rows.Next() {
 		var item = &DbHouse{}
 		err = rows.Scan(
 			&item.Uid,
 			&item.Name,
-			&item.Country,
-			&item.Province,
-			&item.City,
-			&item.Address,
+			&item.Lat,
+			&item.Lng,
+			&item.AdLevel1,
+			&item.AdLevel2,
+			&item.AdLevel3,
+			&item.Locality,
+			&item.Nation,
+			&item.StreetName,
+			&item.StreetNum,
+			&item.BuildingNum,
+			&item.RoomNum,
 			&item.Layout,
 			&item.OwnerId,
 			&item.CreateTime)

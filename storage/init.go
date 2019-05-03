@@ -3,17 +3,33 @@ package storage
 import(
 	"database/sql"
 	"fmt"
+	// "encoding/json"
+	// "io/ioutil"
 	_"github.com/go-sql-driver/mysql"
+	"github.com/akkuman/parseConfig"
 	Error "overseas-bulter-server/error"
 )
 
 var db *sql.DB
 
+type Config struct {
+	dbHostIp string
+	dbUserName string
+	dbPassword string
+	dbName string
+}
+
 var (
-	dbHostIp="0.0.0.0:3306"//"129.28.57.139:3306"//"localhost:3306"//"0.0.0.0:3306"//
-	dbUserName="root"
-	dbPassword="scwy1986614"//"root123"
-	dbName="overseas_bulter"
+	devConfig = &Config{
+		"0.0.0.0:3306",
+		"root",
+		"scwy1986614",
+		"overseas_bulter"}
+	proConfig = &Config{
+		"0.0.0.0:3306",
+		"root",
+		"root123",
+		"overseas_bulter"}
 )
 
 func createTables() {
@@ -24,10 +40,29 @@ func createTables() {
 	CreateFeedbackTable()
 	CreateServiceTable()
 	CreateEmployeeTable()
+	CreateWechatTable()
+	CreateRentRecordTable()
+	CreateInspectRecordTable()
+	CreateRepairRecordTable()
+}
+
+func getConfig() *Config{
+	var config = parseConfig.New("config.json")
+	var mode = config.Get("mode")
+	fmt.Println("config mode = ", mode);
+	if("dev" == mode){
+		return devConfig
+	}else if("pro" == mode){
+		return proConfig
+	}else{
+		fmt.Println("invalid mode in config json")
+		return nil
+	}	
 }
 
 func Init() {
-	localDb,err := sql.Open("mysql",dbUserName+":"+dbPassword+"@tcp("+dbHostIp+")/"+dbName+"?charset=utf8")
+	config := getConfig();
+	localDb,err := sql.Open("mysql",config.dbUserName+":"+config.dbPassword+"@tcp("+config.dbHostIp+")/"+config.dbName+"?charset=utf8")
 	Error.CheckErr(err)
 	fmt.Println("database open !");
 	db = localDb

@@ -11,7 +11,7 @@
 package storage
 
 import(
-	// "database/sql"
+	"database/sql"
 	"fmt"
 	"strings"
 	// _"github.com/go-sql-driver/mysql"
@@ -20,19 +20,23 @@ import(
 )
 
 type DbOrder struct{//13
-	Uid 			string
-	OrderType 		string
-	Content 		string
-	HouseCountry	string
-	HouseProvince	string
-	HouseCity		string
-	HouseAddress	string
-	HouseLayout		string
-	Price 			uint
-	Status			string
-	PlacerId		string
-	AccepterId		string
-	CreateTime		string
+	Uid 				string
+	OrderType 			string
+	Content 			string
+	HouseNation			string
+	HouseAdLevel1		string
+	HouseAdLevel2		string
+	HouseAdLevel3		string
+	HouseStreetName		string
+	HouseStreetNum		string
+	HouseBuildingNum	string
+	HouseRoomNum		string
+	HouseLayout			string
+	Price 				uint
+	Status				string
+	PlacerId			string
+	AccepterId			string
+	CreateTime			string
 }
 
 const(
@@ -40,10 +44,14 @@ const(
 		uid VARCHAR(64) NOT NULL unique,
 		order_type VARCHAR(64) NULL DEFAULT NULL,
 		content VARCHAR(2048) NULL DEFAULT NULL,
-		house_country VARCHAR(64) NULL DEFAULT NULL,
-		house_province VARCHAR(64) NULL DEFAULT NULL,
-		house_city VARCHAR(64) NULL DEFAULT NULL,
-		house_address VARCHAR(1024) NULL DEFAULT NULL,
+		house_nation VARCHAR(64) NULL DEFAULT NULL,
+		house_ad_level_1 VARCHAR(64) NULL DEFAULT NULL,
+		house_ad_level_2 VARCHAR(64) NULL DEFAULT NULL,
+		house_ad_level_3 VARCHAR(64) NULL DEFAULT NULL,
+		house_street_name VARCHAR(64) NULL DEFAULT NULL,
+		house_street_num VARCHAR(64) NULL DEFAULT NULL,
+		house_building_num VARCHAR(64) NULL DEFAULT NULL,
+		house_room_num VARCHAR(64) NULL DEFAULT NULL,
 		house_layout VARCHAR(64) NULL DEFAULT NULL,
 		price INT(64) NULL DEFAULT NULL,
 		status VARCHAR(64) NULL DEFAULT NULL,
@@ -52,10 +60,41 @@ const(
 		create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		PRIMARY KEY(uid))
 		ENGINE=InnoDB DEFAULT CHARSET=utf8;`
-	insert_order = `INSERT INTO order_t (uid,order_type,content,house_country,house_province, house_city, house_address, house_layout,price,status,placer_id, accepter_id) value (?,?,?,?,?,?,?,?,?,?,?,?)`
+	insert_order = `INSERT INTO order_t (
+		uid,
+		order_type,
+		content,
+		house_nation,
+		house_ad_level_1,
+		house_ad_level_2,
+		house_ad_level_3,
+		house_street_name,
+		house_street_num,
+		house_building_num,
+		house_room_num,
+		house_layout,
+		price,
+		status,
+		placer_id,
+		accepter_id) value (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
 	query_orders_by_status_placer = `SELECT * FROM order_t WHERE status=? AND placer_id=? LIMIT ? OFFSET ?`
 	query_order = `SELECT * FROM order_t WHERE uid=?`
-	update_order_by_id = `UPDATE order_t SET order_type=?,content=?,house_country=?,house_province=?, house_city=?, house_address=?, house_layout=?,price=?,status=?,placer_id=?,accepter_id=? WHERE uid=?`
+	update_order_by_id = `UPDATE order_t SET 
+		order_type=?,
+		content=?,
+		house_nation=?,
+		house_ad_level_1=?,
+		house_ad_level_2=?,
+		house_ad_level_3=?,
+		house_street_name=?,
+		house_street_num=?,
+		house_building_num=?,
+		house_room_num=?,
+		house_layout=?,
+		price=?,
+		status=?,
+		placer_id=?,
+		accepter_id=? WHERE uid=?`
 	delete_order_by_id = `DELETE FROM order_t WHERE uid=?`
 
 	query_order_by_user_ids = `SELECT * FROM order_t WHERE placer_id IN (%s) LIMIT ? OFFSET ?`
@@ -68,8 +107,8 @@ const(
 	query_order_count_range_time = `SELECT COUNT(*) FROM order_t WHERE create_time >= ? AND create_time <= ?`
 	query_order_by_status_group = `SELECT * FROM order_t WHERE status IN (%s) LIMIT ? OFFSET ?`
 	query_order_count_by_status_group = `SELECT COUNT(*) FROM order_t WHERE status IN (%s)`
-	query_order_by_address = `SELECT * FROM order_t WHERE house_country=%s AND house_province=%s AND house_city=%s LIMIT ? OFFSET ?`
-	query_order_count_by_address = `SELECT COUNT(*) FROM order_t WHERE house_country=%s AND house_province=%s AND house_city=%s`
+	query_order_by_address = `SELECT * FROM order_t WHERE house_nation=%s AND house_ad_level_1=%s AND house_ad_level_2=%s LIMIT ? OFFSET ?`
+	query_order_count_by_address = `SELECT COUNT(*) FROM order_t WHERE house_nation=%s AND house_ad_level_1=%s AND house_ad_level_2=%s`
 	query_order_by_layout_group = `SELECT * FROM order_t WHERE house_layout IN (%s) LIMIT ? OFFSET ?`
 	query_order_count_by_layout_group = `SELECT COUNT(*) FROM order_t WHERE house_layout IN (%s)`
 	query_order_below_price = `SELECT * FROM order_t WHERE price <= ? LIMIT ? OFFSET ?`
@@ -107,10 +146,14 @@ func QueryOrder(id string) *DbOrder{
 			&result.Uid, 
 			&result.OrderType, 
 			&result.Content,  
-			&result.HouseCountry, 
-			&result.HouseProvince, 
-			&result.HouseCity, 
-			&result.HouseAddress, 
+			&result.HouseNation, 
+			&result.HouseAdLevel1, 
+			&result.HouseAdLevel2,
+			&result.HouseAdLevel3,
+			&result.HouseStreetName,
+			&result.HouseStreetNum,
+			&result.HouseBuildingNum,
+			&result.HouseRoomNum,  
 			&result.HouseLayout,  
 			&result.Price, 
 			&result.Status, 
@@ -125,21 +168,41 @@ func QueryOrder(id string) *DbOrder{
 }
 
 func AddOrder(
-	orderType 		string,
-	content 		string,
-	houseCountry	string,
-	houseProvince	string,
-	houseCity		string,
-	houseAddress	string,
-	houseLayout		string,
-	price 			uint,
-	status			string,
-	placerId		string,
-	accepterId		string) string{
+	orderType 			string,
+	content 			string,
+	houseNation			string,
+	houseAdLevel1		string,
+	houseAdLevel2		string,
+	houseAdLevel3		string,
+	houseStreetName		string,
+	houseStreetNum		string,
+	houseBuildingNum 	string,
+	HouseRoomNum	 	string,
+	houseLayout			string,
+	price 				uint,
+	status				string,
+	placerId			string,
+	accepterId			string) string{
 	uuid := Uuid.GenerateNextUuid()
 	fmt.Println(uuid)
 	//更新数据
-	ret, err := db.Exec(insert_order ,uuid, orderType, content, houseCountry, houseProvince, houseCity, houseAddress, houseLayout, price, status, placerId, accepterId);
+	ret, err := db.Exec(insert_order ,
+		uuid,
+		orderType,
+		content,
+		houseNation,
+		houseAdLevel1,
+		houseAdLevel2,
+		houseAdLevel3,
+		houseStreetName,
+		houseStreetNum,
+		houseBuildingNum,
+		HouseRoomNum,
+		houseLayout,
+		price,
+		status,
+		placerId,
+		accepterId);
 	Error.CheckErr(err)
 	aff_nums, _ := ret.RowsAffected();
 	fmt.Println("insert order success !")
@@ -148,27 +211,35 @@ func AddOrder(
 }
 
 func UpdateOrder(
-	uid 			string,
-	orderType 		string,
-	content 		string,
-	houseCountry	string,
-	houseProvince	string,
-	houseCity		string,
-	houseAddress	string,
-	houseLayout		string,
-	price 			uint,
-	status			string,
-	placerId		string,
-	accepterId		string){
+	uid 				string,
+	orderType 			string,
+	content 			string,
+	houseNation			string,
+	houseAdLevel1		string,
+	houseAdLevel2		string,
+	houseAdLevel3		string,
+	houseStreetName		string,
+	houseStreetNum		string,
+	houseBuildingNum	string,
+	houseRoomNum		string,
+	houseLayout			string,
+	price 				uint,
+	status				string,
+	placerId			string,
+	accepterId			string){
 	
 		fmt.Println("pay status ", status);
 	ret, err := db.Exec(update_order_by_id, 
 		orderType, 
 		content, 
-		houseCountry,
-		houseProvince,
-		houseCity,
-		houseAddress,
+		houseNation,
+		houseAdLevel1,
+		houseAdLevel2,
+		houseAdLevel3,
+		houseStreetName,
+		houseStreetNum,
+		houseBuildingNum,
+		houseRoomNum,
 		houseLayout,
 		price, 
 		status, 
@@ -189,24 +260,7 @@ func QueryOrdersByStatusPlacerId(count uint, offset uint, status string, placerI
 	Error.CheckErr(err)
 
 	for rows.Next() {
-		var item = &DbOrder{}
-		err = rows.Scan(
-			&item.Uid,
-			&item.OrderType,
-			&item.Content,
-			&item.HouseCountry,
-			&item.HouseProvince,
-			&item.HouseCity,
-			&item.HouseAddress,
-			&item.HouseLayout,
-			&item.Price,
-			&item.Status,
-			&item.PlacerId,
-			&item.AccepterId,
-			&item.CreateTime)
-
-		Error.CheckErr(err)
-		result = append(result, *item)
+		result = append(result, *scanOrderItemFromRows(rows))
 	}
 	return result;
 }
@@ -247,24 +301,7 @@ func QueryOrderByUsers(userIds []string, offset uint, length uint) (uint,[]DbOrd
 	
 	result := make([]DbOrder, 0)
 	for rows.Next() {
-		var item = &DbOrder{}
-		err = rows.Scan(
-			&item.Uid,
-			&item.OrderType,
-			&item.Content,
-			&item.HouseCountry,
-			&item.HouseProvince,
-			&item.HouseCity,
-			&item.HouseAddress,
-			&item.HouseLayout,
-			&item.Price,
-			&item.Status,
-			&item.PlacerId,
-			&item.AccepterId,
-			&item.CreateTime)
-
-		Error.CheckErr(err)
-		result = append(result, *item)
+		result = append(result, *scanOrderItemFromRows(rows))
 	}
 	// fmt.Println(result)
 	return total,result;
@@ -290,24 +327,7 @@ func QueryOrderBeforeTime(time string, offset uint, length uint) (uint, []DbOrde
 	
 	result := make([]DbOrder, 0)
 	for rows.Next() {
-		var item = &DbOrder{}
-		err = rows.Scan(
-			&item.Uid,
-			&item.OrderType,
-			&item.Content,
-			&item.HouseCountry,
-			&item.HouseProvince,
-			&item.HouseCity,
-			&item.HouseAddress,
-			&item.HouseLayout,
-			&item.Price,
-			&item.Status,
-			&item.PlacerId,
-			&item.AccepterId,
-			&item.CreateTime)
-
-		Error.CheckErr(err)
-		result = append(result, *item)
+		result = append(result, *scanOrderItemFromRows(rows))
 	}
 	// fmt.Println(result)
 	return total,result;
@@ -333,24 +353,7 @@ func QueryOrderAfterTime(time string, offset uint, length uint) (uint,[]DbOrder)
 	
 	result := make([]DbOrder, 0)
 	for rows.Next() {
-		var item = &DbOrder{}
-		err = rows.Scan(
-			&item.Uid,
-			&item.OrderType,
-			&item.Content,
-			&item.HouseCountry,
-			&item.HouseProvince,
-			&item.HouseCity,
-			&item.HouseAddress,
-			&item.HouseLayout,
-			&item.Price,
-			&item.Status,
-			&item.PlacerId,
-			&item.AccepterId,
-			&item.CreateTime)
-
-		Error.CheckErr(err)
-		result = append(result, *item)
+		result = append(result, *scanOrderItemFromRows(rows))
 	}
 	// fmt.Println(result)
 	return total, result;
@@ -376,24 +379,7 @@ func QueryOrderRangeTime(fromTime string, toTime string, offset uint, length uin
 	
 	result := make([]DbOrder, 0)
 	for rows.Next() {
-		var item = &DbOrder{}
-		err = rows.Scan(
-			&item.Uid,
-			&item.OrderType,
-			&item.Content,
-			&item.HouseCountry,
-			&item.HouseProvince,
-			&item.HouseCity,
-			&item.HouseAddress,
-			&item.HouseLayout,
-			&item.Price,
-			&item.Status,
-			&item.PlacerId,
-			&item.AccepterId,
-			&item.CreateTime)
-
-		Error.CheckErr(err)
-		result = append(result, *item)
+		result = append(result, *scanOrderItemFromRows(rows))
 	}
 	// fmt.Println(result)
 	return total, result;
@@ -428,24 +414,7 @@ func QueryOrderByStatusGroup(statuses []string, offset uint, length uint) (uint,
 	
 	result := make([]DbOrder, 0)
 	for rows.Next() {
-		var item = &DbOrder{}
-		err = rows.Scan(
-			&item.Uid,
-			&item.OrderType,
-			&item.Content,
-			&item.HouseCountry,
-			&item.HouseProvince,
-			&item.HouseCity,
-			&item.HouseAddress,
-			&item.HouseLayout,
-			&item.Price,
-			&item.Status,
-			&item.PlacerId,
-			&item.AccepterId,
-			&item.CreateTime)
-
-		Error.CheckErr(err)
-		result = append(result, *item)
+		result = append(result, *scanOrderItemFromRows(rows))
 	}
 	// fmt.Println(result)
 	return total, result;
@@ -468,17 +437,17 @@ func QueryOrderByAddress(country string, province string, city string, offset ui
 
 	countrySubSql := "'" + country + "'"
 	if(0 == len(country)) {
-		countrySubSql = "ANY(SELECT house_country FROM order_t)"
+		countrySubSql = "ANY(SELECT house_nation FROM order_t)"
 	}
 
 	provinceSubSql := "'" + province + "'"
 	if(0 == len(province)) {
-		provinceSubSql = "ANY(SELECT house_province FROM order_t)"
+		provinceSubSql = "ANY(SELECT house_ad_level_1 FROM order_t)"
 	}
 
 	citySubSql := "'" + city + "'"
 	if(0 == len(city)) {
-		citySubSql = "ANY(SELECT house_city FROM order_t)"
+		citySubSql = "ANY(SELECT house_ad_level_2 FROM order_t)"
 	}
 
 	total := QueryOrderTotalCountByAddress(countrySubSql, provinceSubSql, citySubSql);
@@ -494,24 +463,7 @@ func QueryOrderByAddress(country string, province string, city string, offset ui
 	
 	result := make([]DbOrder, 0)
 	for rows.Next() {
-		var item = &DbOrder{}
-		err = rows.Scan(
-			&item.Uid,
-			&item.OrderType,
-			&item.Content,
-			&item.HouseCountry,
-			&item.HouseProvince,
-			&item.HouseCity,
-			&item.HouseAddress,
-			&item.HouseLayout,
-			&item.Price,
-			&item.Status,
-			&item.PlacerId,
-			&item.AccepterId,
-			&item.CreateTime)
-
-		Error.CheckErr(err)
-		result = append(result, *item)
+		result = append(result, *scanOrderItemFromRows(rows))
 	}
 	// fmt.Println(result)
 	return total, result;
@@ -545,24 +497,7 @@ func QueryOrderByLayoutGroup(layouts []string, offset uint, length uint) (uint,[
 	
 	result := make([]DbOrder, 0)
 	for rows.Next() {
-		var item = &DbOrder{}
-		err = rows.Scan(
-			&item.Uid,
-			&item.OrderType,
-			&item.Content,
-			&item.HouseCountry,
-			&item.HouseProvince,
-			&item.HouseCity,
-			&item.HouseAddress,
-			&item.HouseLayout,
-			&item.Price,
-			&item.Status,
-			&item.PlacerId,
-			&item.AccepterId,
-			&item.CreateTime)
-
-		Error.CheckErr(err)
-		result = append(result, *item)
+		result = append(result, *scanOrderItemFromRows(rows))
 	}
 	// fmt.Println(result)
 	return total, result;
@@ -588,24 +523,7 @@ func QueryOrderBelowPrice(price uint, offset uint, length uint) (uint, []DbOrder
 	
 	result := make([]DbOrder, 0)
 	for rows.Next() {
-		var item = &DbOrder{}
-		err = rows.Scan(
-			&item.Uid,
-			&item.OrderType,
-			&item.Content,
-			&item.HouseCountry,
-			&item.HouseProvince,
-			&item.HouseCity,
-			&item.HouseAddress,
-			&item.HouseLayout,
-			&item.Price,
-			&item.Status,
-			&item.PlacerId,
-			&item.AccepterId,
-			&item.CreateTime)
-
-		Error.CheckErr(err)
-		result = append(result, *item)
+		result = append(result, *scanOrderItemFromRows(rows))
 	}
 	// fmt.Println(result)
 	return total, result;
@@ -631,24 +549,7 @@ func QueryOrderAbovePrice(price uint, offset uint, length uint) (uint, []DbOrder
 	
 	result := make([]DbOrder, 0)
 	for rows.Next() {
-		var item = &DbOrder{}
-		err = rows.Scan(
-			&item.Uid,
-			&item.OrderType,
-			&item.Content,
-			&item.HouseCountry,
-			&item.HouseProvince,
-			&item.HouseCity,
-			&item.HouseAddress,
-			&item.HouseLayout,
-			&item.Price,
-			&item.Status,
-			&item.PlacerId,
-			&item.AccepterId,
-			&item.CreateTime)
-
-		Error.CheckErr(err)
-		result = append(result, *item)
+		result = append(result, *scanOrderItemFromRows(rows))
 	}
 	// fmt.Println(result)
 	return total, result;
@@ -674,24 +575,7 @@ func QueryOrderRangePrice(fromPrice uint, toPrice uint, offset uint, length uint
 	
 	result := make([]DbOrder, 0)
 	for rows.Next() {
-		var item = &DbOrder{}
-		err = rows.Scan(
-			&item.Uid,
-			&item.OrderType,
-			&item.Content,
-			&item.HouseCountry,
-			&item.HouseProvince,
-			&item.HouseCity,
-			&item.HouseAddress,
-			&item.HouseLayout,
-			&item.Price,
-			&item.Status,
-			&item.PlacerId,
-			&item.AccepterId,
-			&item.CreateTime)
-
-		Error.CheckErr(err)
-		result = append(result, *item)
+		result = append(result, *scanOrderItemFromRows(rows))
 	}
 	// fmt.Println(result)
 	return total, result;
@@ -726,24 +610,7 @@ func QueryOrderByOrderTypeGroup(OrderTypes []string, offset uint, length uint) (
 	
 	result := make([]DbOrder, 0)
 	for rows.Next() {
-		var item = &DbOrder{}
-		err = rows.Scan(
-			&item.Uid,
-			&item.OrderType,
-			&item.Content,
-			&item.HouseCountry,
-			&item.HouseProvince,
-			&item.HouseCity,
-			&item.HouseAddress,
-			&item.HouseLayout,
-			&item.Price,
-			&item.Status,
-			&item.PlacerId,
-			&item.AccepterId,
-			&item.CreateTime)
-
-		Error.CheckErr(err)
-		result = append(result, *item)
+		result = append(result, *scanOrderItemFromRows(rows))
 	}
 	// fmt.Println(result)
 	return total, result;
@@ -769,26 +636,33 @@ func QueryOrders(offset uint, length uint) (uint, []DbOrder){
 	
 	result := make([]DbOrder, 0)
 	for rows.Next() {
-		var item = &DbOrder{}
-		err = rows.Scan(
-			&item.Uid,
-			&item.OrderType,
-			&item.Content,
-			&item.HouseCountry,
-			&item.HouseProvince,
-			&item.HouseCity,
-			&item.HouseAddress,
-			&item.HouseLayout,
-			&item.Price,
-			&item.Status,
-			&item.PlacerId,
-			&item.AccepterId,
-			&item.CreateTime)
-
-		Error.CheckErr(err)
-		result = append(result, *item)
+		result = append(result, *scanOrderItemFromRows(rows))
 	}
 	// fmt.Println(result)
 	return total, result;
 	
+}
+
+func scanOrderItemFromRows(rows *sql.Rows) *DbOrder{
+	var ret = &DbOrder{}
+	err := rows.Scan(
+		&ret.Uid,
+		&ret.OrderType,
+		&ret.Content,
+		&ret.HouseNation, 
+		&ret.HouseAdLevel1, 
+		&ret.HouseAdLevel2,
+		&ret.HouseAdLevel3,
+		&ret.HouseStreetName,
+		&ret.HouseStreetNum,
+		&ret.HouseBuildingNum,
+		&ret.HouseRoomNum,  
+		&ret.HouseLayout,
+		&ret.Price,
+		&ret.Status,
+		&ret.PlacerId,
+		&ret.AccepterId,
+		&ret.CreateTime)
+	Error.CheckErr(err)
+	return ret;
 }

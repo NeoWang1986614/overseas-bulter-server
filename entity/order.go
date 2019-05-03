@@ -1,13 +1,21 @@
 package entity
 
+import (
+	storage "overseas-bulter-server/storage"
+)
+
 type Order struct {
 	Uid 				string	`json:"id"`
 	Type				string	`json:"type"`
 	Content 			string  `json:"content"` 
-	HouseCountry 		string	`json:"house_country"`
-	HouseProvince 		string	`json:"house_province"`
-	HouseCity 			string	`json:"house_city"`
-	HouseAddress 		string	`json:"house_address"`
+	HouseNation 		string	`json:"house_nation"`
+	HouseAdLevel1 		string	`json:"house_ad_level_1"`
+	HouseAdLevel2 		string	`json:"house_ad_level_2"`
+	HouseAdLevel3 		string	`json:"house_ad_level_3"`
+	HouseStreetName 	string	`json:"house_street_name"`
+	HouseStreetNum	 	string	`json:"house_street_num"`
+	HouseBuildingNum 	string	`json:"house_building_num"`
+	HouseRoomNum 		string	`json:"house_room_num"`
 	HouseLayout 		string	`json:"house_layout"`
 	Price				uint	`json:"price"`
 	Status				string  `json:"status"`
@@ -117,4 +125,46 @@ type OrderQueryAll struct {
 type OrderQueryResult struct {
 	Total				uint 	`json:"total"`
 	Entities			[]Order	`json:"entities"`
+}
+
+func ConvertToOrderStorage(enti *Order) *storage.DbOrder{
+	return &storage.DbOrder{
+		Uid: enti.Uid,
+		OrderType: enti.Type,
+		Content: enti.Content,
+		HouseNation: enti.HouseNation,
+		HouseAdLevel1: enti.HouseAdLevel1,
+		HouseAdLevel2: enti.HouseAdLevel2,
+		HouseAdLevel3: enti.HouseAdLevel3,
+		HouseStreetName: enti.HouseStreetName,
+		HouseStreetNum: enti.HouseStreetNum,
+		HouseBuildingNum: enti.HouseBuildingNum,
+		HouseRoomNum: enti.HouseRoomNum,
+		HouseLayout: enti.HouseLayout,
+		Price: enti.Price,
+		Status: enti.Status,
+		PlacerId: enti.PlacerId,
+		AccepterId: enti.AccepterId,
+		CreateTime: enti.CreateTime}
+}
+
+func ConvertToOrderEntity(obj *storage.DbOrder) *Order{
+	return &Order{
+		Uid: obj.Uid,
+		Type: obj.OrderType,
+		Content: obj.Content,
+		HouseNation: obj.HouseNation,
+		HouseAdLevel1: obj.HouseAdLevel1,
+		HouseAdLevel2: obj.HouseAdLevel2,
+		HouseAdLevel3: obj.HouseAdLevel3,
+		HouseStreetName: obj.HouseStreetName,
+		HouseStreetNum: obj.HouseStreetNum,
+		HouseBuildingNum: obj.HouseBuildingNum,
+		HouseRoomNum: obj.HouseRoomNum,
+		HouseLayout: obj.HouseLayout,
+		Price: obj.Price,
+		Status: obj.Status,
+		PlacerId: obj.PlacerId,
+		AccepterId: obj.AccepterId,
+		CreateTime: obj.CreateTime}
 }

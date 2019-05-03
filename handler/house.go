@@ -29,10 +29,6 @@ func HouseSearchHandler(w http.ResponseWriter, r *http.Request)  {
 	case "OPTIONS":
 		fmt.Println(r.Header.Get("Content-Type"))
 		CORSHandle(w)
-		// w.Header().Set("Access-Control-Allow-Origin", "*")
-		// w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-		// w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		// w.Header().Set("Content-Type", "application/json;charset=utf-8")
 		break;
 	}	
 }
@@ -62,23 +58,16 @@ func getHouseHandler(w http.ResponseWriter, r *http.Request)  {
 		panic("no uid exist in url param")
 	}
 	fmt.Println("id = ", id)
-	enti := storage.QueryHouse(id[0])
-	order := &entity.House{
-		Uid: enti.Uid,
-		Name: enti.Name,
-		Country: enti.Country,
-		Province: enti.Province,
-		City: enti.City,
-		Address: enti.Address,
-		Layout: enti.Layout,
-		OwnerId: enti.OwnerId}
-	rsp, err := json.Marshal(order)
+	dbHouse := storage.QueryHouse(id[0])
+	house := entity.ConvertToHouseEntity(dbHouse)
+	rsp, err := json.Marshal(house)
 	Error.CheckErr(err)
 	fmt.Print(string(rsp))
 	io.WriteString(w, string(rsp))
 }
 
 func postHouseHandler(w http.ResponseWriter, r *http.Request)  {
+	fmt.Println("post house handler++");
 	fmt.Println(r.Body);
 
 	con,_:=ioutil.ReadAll(r.Body)
@@ -91,14 +80,20 @@ func postHouseHandler(w http.ResponseWriter, r *http.Request)  {
 
 	uid := storage.AddHouse(
 		requestBody.Name,
-		requestBody.Country,
-		requestBody.Province,
-		requestBody.City,
-		requestBody.Address,
+		requestBody.Lat,
+		requestBody.Lng,
+		requestBody.AdLevel1,
+		requestBody.AdLevel2,
+		requestBody.AdLevel3,
+		requestBody.Locality,
+		requestBody.Nation,
+		requestBody.StreetName,
+		requestBody.StreetNum,
+		requestBody.BuildingNum,
+		requestBody.RoomNum,
 		requestBody.Layout,
 		requestBody.OwnerId)
 
-		// AddUserResult
 	ret := &entity.AddHouseResult{Uid: uid}
 
 	rsp, err := json.Marshal(ret)
@@ -121,10 +116,17 @@ func putHouseHandler(w http.ResponseWriter, r *http.Request)  {
 	storage.UpdateHouse(
 		requestBody.Uid,
 		requestBody.Name,
-		requestBody.Country,
-		requestBody.Province,
-		requestBody.City,
-		requestBody.Address,
+		requestBody.Lat,
+		requestBody.Lng,
+		requestBody.AdLevel1,
+		requestBody.AdLevel2,
+		requestBody.AdLevel3,
+		requestBody.Locality,
+		requestBody.Nation,
+		requestBody.StreetName,
+		requestBody.StreetNum,
+		requestBody.BuildingNum,
+		requestBody.RoomNum,
 		requestBody.Layout,
 		requestBody.OwnerId)
 	
@@ -152,15 +154,7 @@ func postHouseSearchHandler(w http.ResponseWriter, r *http.Request)  {
 	arr := storage.QueryHouses(requestBody.OwnerId, requestBody.Length, requestBody.Offset);
 
 	for i := 0 ; i < len(arr) ; i ++ {
-		var enti = &entity.House{
-			arr[i].Uid,
-			arr[i].Name,
-			arr[i].Country,
-			arr[i].Province,
-			arr[i].City,
-			arr[i].Address,
-			arr[i].Layout,
-			arr[i].OwnerId}
+		var enti = entity.ConvertToHouseEntity(&arr[i])
 		entities = append(entities, *enti)
 	}
 

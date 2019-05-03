@@ -9,12 +9,16 @@ import(
 )
 
 type DbFeedback struct{
-	Uid 		string
-	OrderId 	string
-	AuthorId	string
-	Content 	string
-	IsRead		uint
-	CreateTime	string
+	Uid 			string
+	OrderId 		string
+	AuthorId		string
+	Content 		string
+	IsRead			uint
+	Income			float32
+	Outgoings		float32
+	AccountingDate	string
+	UpdateTime		string
+	CreateTime		string
 }
 
 const(
@@ -24,10 +28,22 @@ const(
 		author_id VARCHAR(64) NULL DEFAULT NULL,
 		content VARCHAR(2048) NULL DEFAULT NULL,
 		is_read TINYINT(1) NULL DEFAULT NULL,
+		income FLOAT(10,2) NULL DEFAULT NULL,
+		outgoings FLOAT(10,2) NULL DEFAULT NULL,
+		accounting_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 		create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		PRIMARY KEY(uid))
 		ENGINE=InnoDB DEFAULT CHARSET=utf8;`
-	insert_feedback = `INSERT INTO feedback_t (uid, order_id, author_id, content, is_read) value (?,?,?,?,?)`
+	insert_feedback = `INSERT INTO feedback_t(
+		uid,
+		order_id,
+		author_id,
+		content,
+		is_read,
+		income,
+		outgoings,
+		accounting_date) value (?,?,?,?,?,?,?,?)`
 	query_feedbacks_by_order_id = `SELECT * FROM feedback_t WHERE order_id=? ORDER BY create_time DESC LIMIT ? OFFSET ?`
 	update_feedbacks_is_read_by_order_id = `UPDATE feedback_t SET is_read=? WHERE order_id=?`
 	query_feedbacks_by_order_id_is_read = `SELECT * FROM feedback_t WHERE order_id=? AND is_read=? LIMIT ? OFFSET ?`
@@ -44,13 +60,16 @@ func CreateFeedbackTable() {
 }
 
 func AddFeedback(
-	orderId 	string,
-	authorId 	string,
-	content		string) {
+	orderId 		string,
+	authorId 		string,
+	content			string,
+	income			float32,
+	outgoings		float32,
+	accountingDate	string) {
 	uuid := Uuid.GenerateNextUuid()
 	fmt.Println(uuid)
 	//更新数据
-	ret, err := db.Exec(insert_feedback ,uuid, orderId, authorId, content, 1/*未读*/);
+	ret, err := db.Exec(insert_feedback ,uuid, orderId, authorId, content, 1/*未读*/, income, outgoings, accountingDate);
 	Error.CheckErr(err)
 	aff_nums, _ := ret.RowsAffected();
 	fmt.Println("insert feedback success !")
@@ -71,6 +90,10 @@ func QueryFeedbackByOrderId(count uint, offset uint, orderId string, isFromBacke
 			&item.AuthorId,
 			&item.Content, 
 			&item.IsRead, 
+			&item.Income,
+			&item.Outgoings,
+			&item.AccountingDate,
+			&item.UpdateTime,
 			&item.CreateTime)
 		Error.CheckErr(err)
 		result = append(result, *item)
@@ -108,6 +131,10 @@ func QueryFeedbackByOrderIdIsRead(count uint, offset uint, orderId string, isRea
 			&item.AuthorId,
 			&item.Content, 
 			&item.IsRead, 
+			&item.Income,
+			&item.Outgoings,
+			&item.AccountingDate,
+			&item.UpdateTime,
 			&item.CreateTime)
 		Error.CheckErr(err)
 		result = append(result, *item)
