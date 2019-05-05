@@ -23,6 +23,7 @@ type DbHouse struct{//16
 	BuildingNum 	string
 	RoomNum			string
 	Layout 			string
+	Area			float32
 	OwnerId			string
 	CreateTime		string
 }
@@ -43,6 +44,7 @@ const(
 		building_num VARCHAR(64) NULL DEFAULT NULL,
 		room_num VARCHAR(64) NULL DEFAULT NULL,
 		layout VARCHAR(64) NULL DEFAULT NULL,
+		area FLOAT(10,2) NULL DEFAULT NULL,
 		owner_id VARCHAR(64) NULL DEFAULT NULL,
 		create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		PRIMARY KEY(uid))
@@ -62,7 +64,8 @@ const(
 						building_num,
 						room_num,
 						layout,
-						owner_id) VALUE (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+						area,
+						owner_id) VALUE (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
 	query_house_by_range = `SELECT * FROM house_t WHERE owner_id=? LIMIT ? OFFSET ?`
 	query_house = `SELECT * FROM house_t WHERE uid=?`
 	update_house_by_uid = `UPDATE house_t SET 
@@ -79,6 +82,7 @@ const(
 	building_num=?,
 	room_num=?,
 	layout=?,
+	area=?,
 	owner_id=? WHERE uid=?`
 	delete_house_by_uid = `DELETE FROM house_t WHERE uid=?`
 )
@@ -115,6 +119,7 @@ func QueryHouse(id string) *DbHouse{
 			&result.BuildingNum,
 			&result.RoomNum, 
 			&result.Layout,
+			&result.Area,
 			&result.OwnerId,
 			&result.CreateTime)
 		Error.CheckErr(err)
@@ -138,6 +143,7 @@ func AddHouse(
 	buildingNum string,
 	roomNum string,
 	layout string,
+	area float32,
 	ownerId string) string{
 	uuid := Uuid.GenerateNextUuid()
 	fmt.Println(uuid)
@@ -157,6 +163,7 @@ func AddHouse(
 		buildingNum,
 		roomNum,
 		layout,
+		area,
 		ownerId);
 	Error.CheckErr(err)
 	aff_nums, _ := ret.RowsAffected();
@@ -180,6 +187,7 @@ func UpdateHouse(
 	buildingNum string,
 	roomNum string,
 	layout string,
+	area float32,
 	ownerId string){
 	
 	ret, err := db.Exec(update_house_by_uid, 
@@ -195,7 +203,8 @@ func UpdateHouse(
 		streetNum,
 		buildingNum,
 		roomNum, 
-		layout, 
+		layout,
+		area,
 		ownerId, 
 		uid)
 	Error.CheckErr(err)
@@ -227,6 +236,7 @@ func QueryHouses(ownerId string, count uint, offset uint) []DbHouse{
 			&item.BuildingNum,
 			&item.RoomNum,
 			&item.Layout,
+			&item.Area,
 			&item.OwnerId,
 			&item.CreateTime)
 		Error.CheckErr(err)

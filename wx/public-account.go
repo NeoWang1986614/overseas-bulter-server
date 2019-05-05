@@ -40,30 +40,6 @@ type GetPublicMaterialDetailRequest struct {
 	MediaId 			string 	`json:"media_id"`
 }
 
-// {
-// 	"item":[
-// 		{
-// 			"media_id":"gfNxWPISJ1qtGI6J7zchI5MJ4FqKfC4Y2KFp_EMHBrc",
-// 			"content":{
-// 					"news_item":[
-// 						{
-// 							"title":"海外管家，你值得信赖",
-// 							"author":"梦",
-// 							"digest":"海外管家，全身心帮您打理海外固定资产的放心管家",
-// 							"content":"",
-// 							"need_open_comment":0,
-// 							"only_fans_can_comment":0
-// 						}
-// 					],
-// 					"create_time":1556026136,
-// 					"update_time":1556027921
-//			},
-//			"update_time":1556027921
-//		}
-//	],
-// 	"total_count":1,
-// 	"item_count":1
-// }
 type WxPublicAccountNewsItem struct {
 	Title 					string 	`json:"title"`
 	Author 					string	`json:"author"` 
@@ -124,8 +100,12 @@ func checkValidAndGetAccessToken() string{
 	
 	if(isNeedUpdateAccessTokenFromRemote){
 		ret := getAccessToken()
-		storage.AddWechat(ret.AccessToken, ret.ExpiresIn)
-		return ret.AccessToken
+		if(0 != len(ret.AccessToken)){
+			storage.AddWechat(ret.AccessToken, ret.ExpiresIn)
+			return ret.AccessToken
+		}
+		fmt.Println("error: Access Token is empty")
+		return ""
 	}
 	
 	return wechats[0].AccessToken
@@ -156,13 +136,13 @@ func isAccessTokenTimeout(wechat *storage.DbWechat) bool{
 
 func getAccessToken() *GetAccessTokenResult{
 	url := fmt.Sprintf(get_access_token_url, public_account_app_id, public_account_app_secret)
-	fmt.Println(url)
+	fmt.Println("** get access token url: ",url)
 	resp, err:= http.Get(url);
 	Error.CheckErr(err)
 	defer resp.Body.Close()
     body, err := ioutil.ReadAll(resp.Body)
     Error.CheckErr(err)
-	fmt.Println(string(body))
+	fmt.Println("** get access token response body: ",string(body))
 	ret := &GetAccessTokenResult{}
 	json.Unmarshal(body, ret)
 	return ret

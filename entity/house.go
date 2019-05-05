@@ -18,7 +18,8 @@ type House struct {
 	StreetNum	 	string	`json:"street_num"`
 	BuildingNum	 	string	`json:"building_num"`
 	RoomNum	 		string	`json:"room_num"`
-	Layout 			string 	`json:"layout"`  
+	Layout 			string 	`json:"layout"`
+	Area 			float32 `json:"area"`
 	OwnerId 		string 	`json:"owner_id"` 
 }
 
@@ -52,6 +53,7 @@ func ConvertToHouseStorage(enti *House) *storage.DbHouse{
 		BuildingNum: enti.BuildingNum,
 		RoomNum: enti.RoomNum,
 		Layout: enti.Layout,
+		Area: enti.Area,
 		OwnerId: enti.OwnerId}
 }
 
@@ -71,5 +73,6 @@ func ConvertToHouseEntity(obj *storage.DbHouse) *House{
 		BuildingNum: obj.BuildingNum,
 		RoomNum: obj.RoomNum,
 		Layout: obj.Layout,
+		Area: obj.Area,
 		OwnerId: obj.OwnerId}
 }

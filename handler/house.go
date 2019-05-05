@@ -92,6 +92,7 @@ func postHouseHandler(w http.ResponseWriter, r *http.Request)  {
 		requestBody.BuildingNum,
 		requestBody.RoomNum,
 		requestBody.Layout,
+		requestBody.Area,
 		requestBody.OwnerId)
 
 	ret := &entity.AddHouseResult{Uid: uid}
@@ -128,6 +129,7 @@ func putHouseHandler(w http.ResponseWriter, r *http.Request)  {
 		requestBody.BuildingNum,
 		requestBody.RoomNum,
 		requestBody.Layout,
+		requestBody.Area,
 		requestBody.OwnerId)
 	
 	ret := &entity.AddHouseResult{Uid: requestBody.Uid}

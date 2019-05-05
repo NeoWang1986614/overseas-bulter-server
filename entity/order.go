@@ -17,6 +17,7 @@ type Order struct {
 	HouseBuildingNum 	string	`json:"house_building_num"`
 	HouseRoomNum 		string	`json:"house_room_num"`
 	HouseLayout 		string	`json:"house_layout"`
+	HouseArea 			float32	`json:"house_area"`
 	Price				uint	`json:"price"`
 	Status				string  `json:"status"`
 	PlacerId			string	`json:"placer_id"`
@@ -141,6 +142,7 @@ func ConvertToOrderStorage(enti *Order) *storage.DbOrder{
 		HouseBuildingNum: enti.HouseBuildingNum,
 		HouseRoomNum: enti.HouseRoomNum,
 		HouseLayout: enti.HouseLayout,
+		HouseArea: enti.HouseArea,
 		Price: enti.Price,
 		Status: enti.Status,
 		PlacerId: enti.PlacerId,
@@ -162,6 +164,7 @@ func ConvertToOrderEntity(obj *storage.DbOrder) *Order{
 		HouseBuildingNum: obj.HouseBuildingNum,
 		HouseRoomNum: obj.HouseRoomNum,
 		HouseLayout: obj.HouseLayout,
+		HouseArea: obj.HouseArea,
 		Price: obj.Price,
 		Status: obj.Status,
 		PlacerId: obj.PlacerId,

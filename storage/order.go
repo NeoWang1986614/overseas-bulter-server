@@ -32,6 +32,7 @@ type DbOrder struct{//13
 	HouseBuildingNum	string
 	HouseRoomNum		string
 	HouseLayout			string
+	HouseArea			float32
 	Price 				uint
 	Status				string
 	PlacerId			string
@@ -53,6 +54,7 @@ const(
 		house_building_num VARCHAR(64) NULL DEFAULT NULL,
 		house_room_num VARCHAR(64) NULL DEFAULT NULL,
 		house_layout VARCHAR(64) NULL DEFAULT NULL,
+		house_area FLOAT(10,2) NULL DEFAULT NULL,
 		price INT(64) NULL DEFAULT NULL,
 		status VARCHAR(64) NULL DEFAULT NULL,
 		placer_id VARCHAR(64) NULL DEFAULT NULL,
@@ -73,10 +75,11 @@ const(
 		house_building_num,
 		house_room_num,
 		house_layout,
+		house_area,
 		price,
 		status,
 		placer_id,
-		accepter_id) value (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+		accepter_id) value (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
 	query_orders_by_status_placer = `SELECT * FROM order_t WHERE status=? AND placer_id=? LIMIT ? OFFSET ?`
 	query_order = `SELECT * FROM order_t WHERE uid=?`
 	update_order_by_id = `UPDATE order_t SET 
@@ -91,6 +94,7 @@ const(
 		house_building_num=?,
 		house_room_num=?,
 		house_layout=?,
+		house_area=?,
 		price=?,
 		status=?,
 		placer_id=?,
@@ -154,7 +158,8 @@ func QueryOrder(id string) *DbOrder{
 			&result.HouseStreetNum,
 			&result.HouseBuildingNum,
 			&result.HouseRoomNum,  
-			&result.HouseLayout,  
+			&result.HouseLayout,
+			&result.HouseArea,
 			&result.Price, 
 			&result.Status, 
 			&result.PlacerId, 
@@ -179,6 +184,7 @@ func AddOrder(
 	houseBuildingNum 	string,
 	HouseRoomNum	 	string,
 	houseLayout			string,
+	houseArea			float32,
 	price 				uint,
 	status				string,
 	placerId			string,
@@ -199,6 +205,7 @@ func AddOrder(
 		houseBuildingNum,
 		HouseRoomNum,
 		houseLayout,
+		houseArea,
 		price,
 		status,
 		placerId,
@@ -223,6 +230,7 @@ func UpdateOrder(
 	houseBuildingNum	string,
 	houseRoomNum		string,
 	houseLayout			string,
+	houseArea			float32,
 	price 				uint,
 	status				string,
 	placerId			string,
@@ -241,6 +249,7 @@ func UpdateOrder(
 		houseBuildingNum,
 		houseRoomNum,
 		houseLayout,
+		houseArea,
 		price, 
 		status, 
 		placerId, 
@@ -658,6 +667,7 @@ func scanOrderItemFromRows(rows *sql.Rows) *DbOrder{
 		&ret.HouseBuildingNum,
 		&ret.HouseRoomNum,  
 		&ret.HouseLayout,
+		&ret.HouseArea,
 		&ret.Price,
 		&ret.Status,
 		&ret.PlacerId,
