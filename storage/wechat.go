@@ -26,6 +26,7 @@ const(
 	add_wechat = `INSERT INTO wechat_t(id, access_token, expires_in) VALUE (?,?,?)`
 	query_wechat_all = `SELECT * FROM wechat_t`
 	update_wechat_by_id = `UPDATE wechat_t SET access_token=?, expires_in=? WHERE id=?`
+	delete_wechat_by_id = `DELETE FROM wechat_t WHERE id=?`
 )
 
 func CreateWechatTable() {
@@ -75,6 +76,15 @@ func QueryWechatAll() []DbWechat{
 	}
 	// fmt.Println(result)
 	return result;
+}
+
+func DeleteWechatById(id string){
+
+	ret, err := db.Exec(delete_wechat_by_id ,id);
+	Error.CheckErr(err)
+	aff_nums, _ := ret.RowsAffected();
+	fmt.Println("delete wechat success !")
+	fmt.Println(aff_nums)
 }
 
 func scanWechatItemFromRows(rows *sql.Rows) *DbWechat{

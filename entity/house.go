@@ -6,7 +6,8 @@ import (
 
 type House struct {
 	Uid 			string	`json:"uid"` 
-	Name 			string  `json:"name"` 
+	Name 			string  `json:"name"`
+	Property 		string  `json:"property"` 
 	Lat 			string	`json:"lat"`
 	Lng 			string	`json:"lng"`
 	AdLevel1	 	string	`json:"ad_level_1"`
@@ -20,13 +21,19 @@ type House struct {
 	RoomNum	 		string	`json:"room_num"`
 	Layout 			string 	`json:"layout"`
 	Area 			float32 `json:"area"`
-	OwnerId 		string 	`json:"owner_id"` 
+	OwnerId 		string 	`json:"owner_id"`
+	Status 			string 	`json:"status"`
+	Meta 			string  `json:"meta"`
 }
 
-type HouseSearch struct {
+type HouseQueryByOwnerId struct {
 	Offset 			uint	`json:"offset"` 
 	Length 			uint  	`json:"length"`
 	OwnerId			string  `json:"owner_id"`
+}
+
+type HouseQueryByUidGroup struct {
+	Uids 			[]string	`json:"uids"` 
 }
 
 type AddHouseResult struct {
@@ -41,6 +48,7 @@ func ConvertToHouseStorage(enti *House) *storage.DbHouse{
 	return &storage.DbHouse{
 		Uid: enti.Uid,
 		Name: enti.Name,
+		Property: enti.Property,
 		Lat: enti.Lat,
 		Lng: enti.Lng,
 		AdLevel1: enti.AdLevel1,
@@ -54,13 +62,16 @@ func ConvertToHouseStorage(enti *House) *storage.DbHouse{
 		RoomNum: enti.RoomNum,
 		Layout: enti.Layout,
 		Area: enti.Area,
-		OwnerId: enti.OwnerId}
+		OwnerId: enti.OwnerId,
+		Status: enti.Status,
+		Meta: enti.Meta}
 }
 
 func ConvertToHouseEntity(obj *storage.DbHouse) *House{
 	return &House{
 		Uid: obj.Uid,
 		Name: obj.Name,
+		Property: obj.Property,
 		Lat: obj.Lat,
 		Lng: obj.Lng,
 		AdLevel1: obj.AdLevel1,
@@ -74,5 +85,7 @@ func ConvertToHouseEntity(obj *storage.DbHouse) *House{
 		RoomNum: obj.RoomNum,
 		Layout: obj.Layout,
 		Area: obj.Area,
-		OwnerId: obj.OwnerId}
+		OwnerId: obj.OwnerId,
+		Status: obj.Status,
+		Meta: obj.Meta}
 }

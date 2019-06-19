@@ -16,6 +16,7 @@ import(
 func HouseSearchHandler(w http.ResponseWriter, r *http.Request)  {
 	fmt.Println("house search handler")
 	fmt.Println(r.Method);
+	fmt.Println(r.RequestURI);
 	switch(r.Method){
 	case "GET":
 		break;
@@ -36,6 +37,7 @@ func HouseSearchHandler(w http.ResponseWriter, r *http.Request)  {
 func HouseHandler(w http.ResponseWriter, r *http.Request)  {
 	fmt.Println("house handler")
 	fmt.Println(r.Method);
+	fmt.Println(r.RequestURI);
 	switch(r.Method){
 	case "GET":
 		getHouseHandler(w, r)
@@ -80,6 +82,7 @@ func postHouseHandler(w http.ResponseWriter, r *http.Request)  {
 
 	uid := storage.AddHouse(
 		requestBody.Name,
+		requestBody.Property,
 		requestBody.Lat,
 		requestBody.Lng,
 		requestBody.AdLevel1,
@@ -93,7 +96,8 @@ func postHouseHandler(w http.ResponseWriter, r *http.Request)  {
 		requestBody.RoomNum,
 		requestBody.Layout,
 		requestBody.Area,
-		requestBody.OwnerId)
+		requestBody.OwnerId,
+		requestBody.Meta)
 
 	ret := &entity.AddHouseResult{Uid: uid}
 
@@ -117,6 +121,7 @@ func putHouseHandler(w http.ResponseWriter, r *http.Request)  {
 	storage.UpdateHouse(
 		requestBody.Uid,
 		requestBody.Name,
+		requestBody.Property,
 		requestBody.Lat,
 		requestBody.Lng,
 		requestBody.AdLevel1,
@@ -130,7 +135,8 @@ func putHouseHandler(w http.ResponseWriter, r *http.Request)  {
 		requestBody.RoomNum,
 		requestBody.Layout,
 		requestBody.Area,
-		requestBody.OwnerId)
+		requestBody.OwnerId,
+		requestBody.Meta)
 	
 	ret := &entity.AddHouseResult{Uid: requestBody.Uid}
 
@@ -144,16 +150,33 @@ func putHouseHandler(w http.ResponseWriter, r *http.Request)  {
 func postHouseSearchHandler(w http.ResponseWriter, r *http.Request)  {
 	fmt.Println(r.Body);
 
+	qType, ok := r.URL.Query()["queryType"]
+	if(!ok) {
+		panic("no qType in url param")
+	}
+	fmt.Println("qType = ", qType)
+
+
 	con,_:=ioutil.ReadAll(r.Body)
 	fmt.Println(string(con))
 
-	requestBody := &entity.HouseSearch{}
-	err := json.Unmarshal(con, requestBody)
-	Error.CheckErr(err)
-	fmt.Print(requestBody)
 
+	arr := make([]storage.DbHouse, 0)
 	entities := make([]entity.House, 0)
-	arr := storage.QueryHouses(requestBody.OwnerId, requestBody.Length, requestBody.Offset);
+	if("ownerId" == qType[0]){
+		requestBody := &entity.HouseQueryByOwnerId{}
+		err := json.Unmarshal(con, requestBody)
+		Error.CheckErr(err)
+		fmt.Print(requestBody)
+		arr = storage.QueryHouses(requestBody.OwnerId, requestBody.Length, requestBody.Offset);
+	}else if("uids" == qType[0]){
+
+		requestBody := &entity.HouseQueryByUidGroup{}
+		err := json.Unmarshal(con, requestBody)
+		Error.CheckErr(err)
+		fmt.Print(requestBody)
+		arr = storage.QueryHousesByUidGroup(requestBody.Uids);
+	}
 
 	for i := 0 ; i < len(arr) ; i ++ {
 		var enti = entity.ConvertToHouseEntity(&arr[i])

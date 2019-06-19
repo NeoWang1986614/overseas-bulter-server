@@ -4,8 +4,9 @@ import(
 	"fmt"
 )
 
-const ServerListentIp = "0.0.0.0:8008"
+var ServerListentIp = "0.0.0.0:8008"
 const ImageServerAddress = "https://bulter.mroom.com.cn:8008"
+const FileServerAddress = "https://bulter.mroom.com.cn:8008"
 const preHttpString = "/overseas-bulter/v1"
 
 

@@ -1,13 +1,3 @@
-// Uid 				string	`json:"uid"`
-// 	OrderType				string	`json:"OrderType"`
-// 	Content 			string  `json:"title"` 
-// 	HouseId 			string	`json:"house_id"`
-// 	Price				uint	`json:"price"`
-// 	Status				string  `json:"status"`
-// 	PlacerId			string	`json:"placer_id"`
-// 	AccepterId			string	`json:"accepter_id"`
-// 	Time				string	`json:"time"`
-
 package storage
 
 import(
@@ -23,6 +13,7 @@ type DbOrder struct{//13
 	Uid 				string
 	OrderType 			string
 	Content 			string
+	HouseId				string
 	HouseNation			string
 	HouseAdLevel1		string
 	HouseAdLevel2		string
@@ -37,6 +28,9 @@ type DbOrder struct{//13
 	Status				string
 	PlacerId			string
 	AccepterId			string
+	WxPrepayId			string
+	Meta				string
+	Deleted				uint
 	CreateTime			string
 }
 
@@ -45,6 +39,7 @@ const(
 		uid VARCHAR(64) NOT NULL unique,
 		order_type VARCHAR(64) NULL DEFAULT NULL,
 		content VARCHAR(2048) NULL DEFAULT NULL,
+		house_id VARCHAR(64) NULL DEFAULT NULL,
 		house_nation VARCHAR(64) NULL DEFAULT NULL,
 		house_ad_level_1 VARCHAR(64) NULL DEFAULT NULL,
 		house_ad_level_2 VARCHAR(64) NULL DEFAULT NULL,
@@ -59,6 +54,9 @@ const(
 		status VARCHAR(64) NULL DEFAULT NULL,
 		placer_id VARCHAR(64) NULL DEFAULT NULL,
 		accepter_id VARCHAR(64) NULL DEFAULT NULL,
+		wx_prepay_id VARCHAR(64) NULL DEFAULT NULL,
+		meta VARCHAR(1024) NULL DEFAULT NULL,
+		deleted INT(64) NULL DEFAULT 0,
 		create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		PRIMARY KEY(uid))
 		ENGINE=InnoDB DEFAULT CHARSET=utf8;`
@@ -66,6 +64,7 @@ const(
 		uid,
 		order_type,
 		content,
+		house_id,
 		house_nation,
 		house_ad_level_1,
 		house_ad_level_2,
@@ -79,12 +78,16 @@ const(
 		price,
 		status,
 		placer_id,
-		accepter_id) value (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
-	query_orders_by_status_placer = `SELECT * FROM order_t WHERE status=? AND placer_id=? LIMIT ? OFFSET ?`
-	query_order = `SELECT * FROM order_t WHERE uid=?`
+		accepter_id,
+		wx_prepay_id,
+		meta,
+		deleted) value (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+	query_orders_by_status_placer = `SELECT * FROM order_t WHERE status=? AND placer_id=? AND deleted=0 LIMIT ? OFFSET ?`
+	query_order = `SELECT * FROM order_t WHERE uid=? AND deleted=0`
 	update_order_by_id = `UPDATE order_t SET 
 		order_type=?,
 		content=?,
+		house_id=?,
 		house_nation=?,
 		house_ad_level_1=?,
 		house_ad_level_2=?,
@@ -98,35 +101,45 @@ const(
 		price=?,
 		status=?,
 		placer_id=?,
-		accepter_id=? WHERE uid=?`
-	delete_order_by_id = `DELETE FROM order_t WHERE uid=?`
+		accepter_id=?,
+		meta=? WHERE uid=?`
+	update_order_prepay_id_by_id = `UPDATE order_t temp SET temp.wx_prepay_id='%s' WHERE uid='%s'`
+	update_order_status_by_id = `UPDATE order_t SET status=? WHERE uid=?`
+	// delete_order_by_id = `DELETE FROM order_t WHERE uid=?`
+	update_order_deleted_by_id = `UPDATE order_t SET deleted=1 WHERE uid=?`
 
-	query_order_by_user_ids = `SELECT * FROM order_t WHERE placer_id IN (%s) LIMIT ? OFFSET ?`
-	query_order_count_by_user_ids = `SELECT COUNT(*) FROM order_t WHERE placer_id IN (%s)`
-	query_order_before_time = `SELECT * FROM order_t WHERE create_time <= ? LIMIT ? OFFSET ?`
-	query_order_count_before_time = `SELECT COUNT(*) FROM order_t WHERE create_time <= ?`
-	query_order_after_time = `SELECT * FROM order_t WHERE create_time >= ? LIMIT ? OFFSET ?`
-	query_order_count_after_time = `SELECT COUNT(*) FROM order_t WHERE create_time >= ?`
-	query_order_range_time = `SELECT * FROM order_t WHERE create_time >= ? AND create_time <= ? LIMIT ? OFFSET ?`
-	query_order_count_range_time = `SELECT COUNT(*) FROM order_t WHERE create_time >= ? AND create_time <= ?`
-	query_order_by_status_group = `SELECT * FROM order_t WHERE status IN (%s) LIMIT ? OFFSET ?`
-	query_order_count_by_status_group = `SELECT COUNT(*) FROM order_t WHERE status IN (%s)`
-	query_order_by_address = `SELECT * FROM order_t WHERE house_nation=%s AND house_ad_level_1=%s AND house_ad_level_2=%s LIMIT ? OFFSET ?`
-	query_order_count_by_address = `SELECT COUNT(*) FROM order_t WHERE house_nation=%s AND house_ad_level_1=%s AND house_ad_level_2=%s`
-	query_order_by_layout_group = `SELECT * FROM order_t WHERE house_layout IN (%s) LIMIT ? OFFSET ?`
-	query_order_count_by_layout_group = `SELECT COUNT(*) FROM order_t WHERE house_layout IN (%s)`
-	query_order_below_price = `SELECT * FROM order_t WHERE price <= ? LIMIT ? OFFSET ?`
-	query_order_count_below_price = `SELECT COUNT(*) FROM order_t WHERE price <= ?`
-	query_order_above_price = `SELECT * FROM order_t WHERE price >= ? LIMIT ? OFFSET ?`
-	query_order_count_above_price = `SELECT COUNT(*) FROM order_t WHERE price >= ?`
-	query_order_range_price = `SELECT * FROM order_t WHERE price >= ? AND price <= ? LIMIT ? OFFSET ?`
-	query_order_count_range_price = `SELECT COUNT(*) FROM order_t WHERE price >= ? AND price <= ?`
 	
-	query_order_by_order_type_group = `SELECT * FROM order_t WHERE order_type IN (%s) LIMIT ? OFFSET ?`
-	query_order_count_by_order_type_group = `SELECT COUNT(*) FROM order_t WHERE order_type IN (%s)`
 
-	query_orders = `SELECT * FROM order_t LIMIT ? OFFSET ?`
-	query_order_count_all = `SELECT COUNT(*) FROM order_t`
+	query_order_by_user_ids = `SELECT * FROM order_t WHERE placer_id IN (%s) AND deleted=0 LIMIT ? OFFSET ?`
+	query_order_count_by_user_ids = `SELECT COUNT(*) FROM order_t WHERE placer_id IN (%s) AND deleted=0`
+	query_order_before_time = `SELECT * FROM order_t WHERE create_time <= ? AND deleted=0 LIMIT ? OFFSET ?`
+	query_order_count_before_time = `SELECT COUNT(*) FROM order_t WHERE create_time <= ? AND deleted=0`
+	query_order_after_time = `SELECT * FROM order_t WHERE create_time >= ? AND deleted=0 LIMIT ? OFFSET ?`
+	query_order_count_after_time = `SELECT COUNT(*) FROM order_t WHERE create_time >= ? AND deleted=0`
+	query_order_range_time = `SELECT * FROM order_t WHERE create_time >= ? AND create_time <= ? AND deleted=0 LIMIT ? OFFSET ?`
+	query_order_count_range_time = `SELECT COUNT(*) FROM order_t WHERE create_time >= ? AND create_time <= ? AND deleted=0`
+	query_order_by_status_group = `SELECT * FROM order_t WHERE status IN (%s) AND deleted=0 LIMIT ? OFFSET ?`
+	query_order_count_by_status_group = `SELECT COUNT(*) FROM order_t WHERE status IN (%s)  AND deleted=0`
+	query_order_by_address = `SELECT * FROM order_t WHERE house_nation=%s AND house_ad_level_1=%s AND house_ad_level_2=%s  AND deleted=0 LIMIT ? OFFSET ?`
+	query_order_count_by_address = `SELECT COUNT(*) FROM order_t WHERE house_nation=%s AND house_ad_level_1=%s AND house_ad_level_2=%s  AND deleted=0 `
+	query_order_by_layout_group = `SELECT * FROM order_t WHERE house_layout IN (%s)  AND deleted=0 LIMIT ? OFFSET ?`
+	query_order_count_by_layout_group = `SELECT COUNT(*) FROM order_t WHERE house_layout IN (%s) AND deleted=0`
+	query_order_below_price = `SELECT * FROM order_t WHERE price <= ?  AND deleted=0 LIMIT ? OFFSET ?`
+	query_order_count_below_price = `SELECT COUNT(*) FROM order_t WHERE price <= ?  AND deleted=0 `
+	query_order_above_price = `SELECT * FROM order_t WHERE price >= ?  AND deleted=0 LIMIT ? OFFSET ?`
+	query_order_count_above_price = `SELECT COUNT(*) FROM order_t WHERE price >= ?  AND deleted=0 `
+	query_order_range_price = `SELECT * FROM order_t WHERE price >= ? AND price <= ?  AND deleted=0 LIMIT ? OFFSET ?`
+	query_order_count_range_price = `SELECT COUNT(*) FROM order_t WHERE price >= ? AND price <= ?  AND deleted=0 `
+	
+	query_order_by_order_type_group = `SELECT * FROM order_t WHERE order_type IN (%s)  AND deleted=0 LIMIT ? OFFSET ?`
+	query_order_count_by_order_type_group = `SELECT COUNT(*) FROM order_t WHERE order_type IN (%s)  AND deleted=0 `
+
+	query_orders = `SELECT * FROM order_t WHERE deleted=0 LIMIT ? OFFSET ?`
+	query_order_count_all = `SELECT COUNT(*) FROM order_t WHERE deleted=0`
+
+	query_order_by_order_type_group_order_status = `SELECT * FROM order_t WHERE order_type IN (%s) AND status=? AND deleted=0 LIMIT ? OFFSET ?`
+	query_order_count_by_order_type_group_order_status = `SELECT COUNT(*) FROM order_t WHERE order_type IN (%s) AND status=? AND deleted=0 `
+
 )
 
 func CreateOrderTable() {
@@ -149,7 +162,8 @@ func QueryOrder(id string) *DbOrder{
 		err = rows.Scan(
 			&result.Uid, 
 			&result.OrderType, 
-			&result.Content,  
+			&result.Content,
+			&result.HouseId,
 			&result.HouseNation, 
 			&result.HouseAdLevel1, 
 			&result.HouseAdLevel2,
@@ -163,7 +177,10 @@ func QueryOrder(id string) *DbOrder{
 			&result.Price, 
 			&result.Status, 
 			&result.PlacerId, 
-			&result.AccepterId, 
+			&result.AccepterId,
+			&result.WxPrepayId,
+			&result.Meta,
+			&result.Deleted,
 			&result.CreateTime)
 		Error.CheckErr(err)
 	}
@@ -175,6 +192,7 @@ func QueryOrder(id string) *DbOrder{
 func AddOrder(
 	orderType 			string,
 	content 			string,
+	houseId				string,
 	houseNation			string,
 	houseAdLevel1		string,
 	houseAdLevel2		string,
@@ -188,7 +206,9 @@ func AddOrder(
 	price 				uint,
 	status				string,
 	placerId			string,
-	accepterId			string) string{
+	accepterId			string,
+	wxPrepayId			string,
+	meta				string) string{
 	uuid := Uuid.GenerateNextUuid()
 	fmt.Println(uuid)
 	//更新数据
@@ -196,6 +216,7 @@ func AddOrder(
 		uuid,
 		orderType,
 		content,
+		houseId,
 		houseNation,
 		houseAdLevel1,
 		houseAdLevel2,
@@ -209,7 +230,10 @@ func AddOrder(
 		price,
 		status,
 		placerId,
-		accepterId);
+		accepterId,
+		wxPrepayId,
+		meta,
+		0);
 	Error.CheckErr(err)
 	aff_nums, _ := ret.RowsAffected();
 	fmt.Println("insert order success !")
@@ -221,6 +245,7 @@ func UpdateOrder(
 	uid 				string,
 	orderType 			string,
 	content 			string,
+	houseId 			string,
 	houseNation			string,
 	houseAdLevel1		string,
 	houseAdLevel2		string,
@@ -234,12 +259,14 @@ func UpdateOrder(
 	price 				uint,
 	status				string,
 	placerId			string,
-	accepterId			string){
+	accepterId			string,
+	meta 				string){
 	
 		fmt.Println("pay status ", status);
 	ret, err := db.Exec(update_order_by_id, 
 		orderType, 
-		content, 
+		content,
+		houseId,
 		houseNation,
 		houseAdLevel1,
 		houseAdLevel2,
@@ -254,10 +281,39 @@ func UpdateOrder(
 		status, 
 		placerId, 
 		accepterId,
+		meta,
 		uid)
 	Error.CheckErr(err)
 	aff_nums, _ := ret.RowsAffected();
 	fmt.Println("update order success !")
+	fmt.Println(aff_nums)
+}
+
+func UpdateOrderWxPrepayIdByUid(
+	wxPrepayId 			string,
+	uid 				string){
+	fmt.Println("wxPrepayId= ", wxPrepayId)
+	fmt.Println("orderId= ", uid)
+	sql := fmt.Sprintf(update_order_prepay_id_by_id, wxPrepayId, uid)
+	fmt.Println("update sql = ", sql)
+	ret, err := db.Exec(sql)
+	Error.CheckErr(err)
+	aff_nums, _ := ret.RowsAffected();
+	fmt.Println("update prepay id for order success !")
+	fmt.Println(aff_nums)
+}
+
+func UpdateOrderStatusByUid(
+	status 			string,
+	uid 				string){
+		fmt.Println("status= ", status)
+		fmt.Println("orderId= ", uid)
+	ret, err := db.Exec(update_order_status_by_id, 
+		status, 
+		uid)
+	Error.CheckErr(err)
+	aff_nums, _ := ret.RowsAffected();
+	fmt.Println("update status for order success status = ", status)
 	fmt.Println(aff_nums)
 }
 
@@ -276,7 +332,7 @@ func QueryOrdersByStatusPlacerId(count uint, offset uint, status string, placerI
 
 func DeleteOrderByUid(uid string){
 	//删除数据
-	ret, err := db.Exec(delete_order_by_id ,uid)
+	ret, err := db.Exec(update_order_deleted_by_id ,uid)
 	Error.CheckErr(err)
 	aff_nums, _ := ret.RowsAffected();
 	fmt.Println("delete order success !")
@@ -652,12 +708,50 @@ func QueryOrders(offset uint, length uint) (uint, []DbOrder){
 	
 }
 
+//类型和状态
+func QueryOrderTotalCountByOrderTypeGroupStatus(orderTypes []string, status string) uint{
+
+	var temp = "'" + strings.Join(orderTypes, "','") + "'"
+	querySql := fmt.Sprintf(query_order_count_by_order_type_group_order_status, temp)
+	fmt.Println(querySql)
+
+	var count uint = 0
+	err := db.QueryRow(querySql, status).Scan(&count)
+	Error.CheckErr(err)
+	fmt.Println(count)
+	return count;
+}
+
+func QueryOrderByOrderTypeGroupStatus(orderTypes []string, status string, offset uint, length uint) (uint, []DbOrder){
+
+	total := QueryOrderTotalCountByOrderTypeGroupStatus(orderTypes, status);
+	fmt.Println("total = " , total);
+
+	var temp = "'" + strings.Join(orderTypes, "','") + "'"
+	querySql := fmt.Sprintf(query_order_by_order_type_group_order_status, temp)
+	fmt.Println(querySql)
+
+	rows, err := db.Query(querySql, status, length, offset)
+	defer rows.Close()
+	Error.CheckErr(err)
+	
+	result := make([]DbOrder, 0)
+	for rows.Next() {
+		result = append(result, *scanOrderItemFromRows(rows))
+	}
+	// fmt.Println(result)
+	return total, result;
+	
+}
+
+
 func scanOrderItemFromRows(rows *sql.Rows) *DbOrder{
 	var ret = &DbOrder{}
 	err := rows.Scan(
 		&ret.Uid,
 		&ret.OrderType,
 		&ret.Content,
+		&ret.HouseId,
 		&ret.HouseNation, 
 		&ret.HouseAdLevel1, 
 		&ret.HouseAdLevel2,
@@ -672,6 +766,9 @@ func scanOrderItemFromRows(rows *sql.Rows) *DbOrder{
 		&ret.Status,
 		&ret.PlacerId,
 		&ret.AccepterId,
+		&ret.WxPrepayId,
+		&ret.Meta,
+		&ret.Deleted,
 		&ret.CreateTime)
 	Error.CheckErr(err)
 	return ret;

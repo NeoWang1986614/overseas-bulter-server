@@ -6,8 +6,8 @@ import(
 	// "encoding/json"
 	// "io/ioutil"
 	_"github.com/go-sql-driver/mysql"
-	"github.com/akkuman/parseConfig"
 	Error "overseas-bulter-server/error"
+	config "overseas-bulter-server/config"
 )
 
 var db *sql.DB
@@ -26,38 +26,44 @@ var (
 		"scwy1986614",
 		"overseas_bulter"}
 	proConfig = &Config{
-		"0.0.0.0:3306",
+		"0.0.0.0:3781",
 		"root",
-		"root123",
+		"llyscysykr#WO&3OuEsnnes36$99324",
 		"overseas_bulter"}
 )
 
 func createTables() {
 	CreateUserTable()
 	CreateHouseTable()
-	CreateCaseTable()
 	CreateOrderTable()
 	CreateFeedbackTable()
 	CreateServiceTable()
 	CreateEmployeeTable()
 	CreateWechatTable()
-	CreateRentRecordTable()
+	CreateBillingRecordTable()
 	CreateInspectRecordTable()
 	CreateRepairRecordTable()
+	CreateServicePrimaryTable()
+	CreateLayoutTable()
+	CreatePriceParamsTable()
+	CreateCarouselFigureTable()
+	CreateHouseDealTable()
 }
 
 func getConfig() *Config{
-	var config = parseConfig.New("config.json")
-	var mode = config.Get("mode")
-	fmt.Println("config mode = ", mode);
+	mode := config.RunMode
+	databaseIp := config.DatabaseIp
 	if("dev" == mode){
+		devConfig.dbHostIp = databaseIp
 		return devConfig
 	}else if("pro" == mode){
+		proConfig.dbHostIp = databaseIp
 		return proConfig
 	}else{
 		fmt.Println("invalid mode in config json")
 		return nil
-	}	
+	}
+	
 }
 
 func Init() {

@@ -7,7 +7,8 @@ import (
 type Order struct {
 	Uid 				string	`json:"id"`
 	Type				string	`json:"type"`
-	Content 			string  `json:"content"` 
+	Content 			string  `json:"content"`
+	HouseId 			string  `json:"house_id"` 
 	HouseNation 		string	`json:"house_nation"`
 	HouseAdLevel1 		string	`json:"house_ad_level_1"`
 	HouseAdLevel2 		string	`json:"house_ad_level_2"`
@@ -22,6 +23,8 @@ type Order struct {
 	Status				string  `json:"status"`
 	PlacerId			string	`json:"placer_id"`
 	AccepterId			string	`json:"accepter_id"`
+	WxPrepayId			string	`json:"wx_prepay_id"`
+	Meta			string	`json:"meta"`
 	CreateTime			string	`json:"create_time"`
 }
 
@@ -133,6 +136,7 @@ func ConvertToOrderStorage(enti *Order) *storage.DbOrder{
 		Uid: enti.Uid,
 		OrderType: enti.Type,
 		Content: enti.Content,
+		HouseId: enti.HouseId,
 		HouseNation: enti.HouseNation,
 		HouseAdLevel1: enti.HouseAdLevel1,
 		HouseAdLevel2: enti.HouseAdLevel2,
@@ -147,6 +151,8 @@ func ConvertToOrderStorage(enti *Order) *storage.DbOrder{
 		Status: enti.Status,
 		PlacerId: enti.PlacerId,
 		AccepterId: enti.AccepterId,
+		WxPrepayId: enti.WxPrepayId,
+		Meta: enti.Meta,
 		CreateTime: enti.CreateTime}
 }
 
@@ -155,6 +161,7 @@ func ConvertToOrderEntity(obj *storage.DbOrder) *Order{
 		Uid: obj.Uid,
 		Type: obj.OrderType,
 		Content: obj.Content,
+		HouseId: obj.HouseId,
 		HouseNation: obj.HouseNation,
 		HouseAdLevel1: obj.HouseAdLevel1,
 		HouseAdLevel2: obj.HouseAdLevel2,
@@ -169,5 +176,7 @@ func ConvertToOrderEntity(obj *storage.DbOrder) *Order{
 		Status: obj.Status,
 		PlacerId: obj.PlacerId,
 		AccepterId: obj.AccepterId,
+		WxPrepayId: obj.WxPrepayId,
+		Meta: obj.Meta,
 		CreateTime: obj.CreateTime}
 }

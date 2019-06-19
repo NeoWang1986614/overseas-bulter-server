@@ -17,30 +17,6 @@ import(
 	Error "overseas-bulter-server/error"
 )
 
-// func HouseSearchHandler(w http.ResponseWriter, r *http.Request)  {
-// 	fmt.Println("house search handler")
-// 	fmt.Println(r.Method);
-// 	switch(r.Method){
-// 	case "GET":
-// 		break;
-// 	case "POST":
-// 		postHouseSearchHandler(w, r)
-// 		break;
-// 	case "PUT":
-// 		break;
-// 	case "DELETE":
-// 		break;
-// 	case "OPTIONS":
-// 		fmt.Println(r.Header.Get("Content-Type"))
-// 		CORSHandle(w)
-// 		// w.Header().Set("Access-Control-Allow-Origin", "*")
-// 		// w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-// 		// w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-// 		// w.Header().Set("Content-Type", "application/json;charset=utf-8")
-// 		break;
-// 	}	
-// }
-
 func ImageHandler(w http.ResponseWriter, r *http.Request)  {
 	fmt.Println("image handler")
 	fmt.Println(r.Method);
@@ -72,9 +48,9 @@ func getImageHandler(w http.ResponseWriter, r *http.Request) {
 
 func postImageHandler(w http.ResponseWriter, r *http.Request)  {
 
-	fileContent := parseMultiPart(r)
+	fileContent, fileType := parseMultiPart(r)
 
-	filePath := writeFile(fileContent);
+	filePath := writeFile(fileContent, fileType);
 
 	rspString := config.ImageServerAddress + config.GenerateIntegratedUri("/image") + "?src=" + filePath
 
@@ -88,14 +64,14 @@ func postImageHandler(w http.ResponseWriter, r *http.Request)  {
 	io.WriteString(w, string(rsp))
 }
 
-func parseMultiPart(r *http.Request)  []byte{
+func parseMultiPart(r *http.Request)  ([]byte, string){
 	mr,err := r.MultipartReader()
 	Error.CheckErr(err)
 	form ,_ := mr.ReadForm(128)
 	return getFormData(form)
 }
 
-func getFormData(form *multipart.Form) []byte{
+func getFormData(form *multipart.Form) ([]byte, string){
 
 	//获取 multi-part/form body中的form value
 	
@@ -119,15 +95,26 @@ func getFormData(form *multipart.Form) []byte{
 		f,_ := v[i].Open()
 		buf,_:= ioutil.ReadAll(f)
 		fmt.Println("file-content-length",len(string(buf)))
-		return buf
+		return buf, v[i].Header["Content-Type"][0]
 
 		}
 	}
-	return nil
+	return nil, ""
 	
 }
 
-func writeFile(content []byte) string{
+func getFileExtentsion(fileType string) string {
+	switch(fileType){
+	case "image/jpeg":
+		return "jpg"
+	case "image/png":
+		return "png"
+	default: 
+		return "unknown"
+	}
+}
+
+func writeFile(content []byte, fileType string) string{
 	
 	currentTime := time.Now()
 	timeStamp := currentTime.Unix()
@@ -135,7 +122,8 @@ func writeFile(content []byte) string{
 	todayString := fmt.Sprintf("%04d%02d%02d", currentTime.Year(), currentTime.Month(), currentTime.Day())
 
 	todayImageDir := "image-upload/" + todayString
-	imageName := fmt.Sprintf("%d.jpg", timeStamp)
+	fileExtension := getFileExtentsion(fileType)
+	imageName := fmt.Sprintf("%d.%s", timeStamp, fileExtension)
 	imageFullName := todayImageDir + "/"+ imageName
 
 	fmt.Println(imageFullName);

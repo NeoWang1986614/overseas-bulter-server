@@ -6,7 +6,7 @@ import(
 	"io"
 	"io/ioutil"
 	"encoding/json"
-	// wx "overseas-bulter-server/wx"
+	wx "overseas-bulter-server/wx"
 	storage "overseas-bulter-server/storage"
 	entity "overseas-bulter-server/entity"
 	Error "overseas-bulter-server/error"
@@ -119,6 +119,7 @@ func postOrderHandler(w http.ResponseWriter, r *http.Request)  {
 	id := storage.AddOrder(
 		requestBody.Type,
 		requestBody.Content,
+		requestBody.HouseId,
 		requestBody.HouseNation,
 		requestBody.HouseAdLevel1,
 		requestBody.HouseAdLevel2,
@@ -132,7 +133,11 @@ func postOrderHandler(w http.ResponseWriter, r *http.Request)  {
 		requestBody.Price,
 		requestBody.Status,
 		requestBody.PlacerId,
-		requestBody.AccepterId)
+		requestBody.AccepterId,
+		requestBody.WxPrepayId,
+		requestBody.Meta)
+	//房产资料不可更改
+	upadteHouseStatus(requestBody.Type + "#" + requestBody.Status, requestBody.HouseId);
 
 	ret := &entity.AddOrderResult{Id: id}
 
@@ -158,6 +163,7 @@ func putOrderHandler(w http.ResponseWriter, r *http.Request)  {
 		requestBody.Uid,
 		requestBody.Type,
 		requestBody.Content,
+		requestBody.HouseId,
 		requestBody.HouseNation,
 		requestBody.HouseAdLevel1,
 		requestBody.HouseAdLevel2,
@@ -171,12 +177,20 @@ func putOrderHandler(w http.ResponseWriter, r *http.Request)  {
 		requestBody.Price,
 		requestBody.Status,
 		requestBody.PlacerId,
-		requestBody.AccepterId)
+		requestBody.AccepterId,
+		requestBody.Meta)
 
-	ret := GetSuccessJsonString()
-	fmt.Println(ret)
+	upadteHouseStatus(requestBody.Type + "#" + requestBody.Status, requestBody.HouseId);
+	
+	rsp, err := json.Marshal(requestBody)
+	Error.CheckErr(err)
+	fmt.Print(string(rsp))
 	CORSHandle(w)
-	io.WriteString(w, ret)
+	io.WriteString(w, string(rsp))
+}
+
+func upadteHouseStatus(houseStatus, houseId string){
+	storage.UpdateHouseStatusByUid(houseStatus, houseId);
 }
 
 func postOrderSearchHandler(w http.ResponseWriter, r *http.Request)  {
@@ -216,6 +230,8 @@ func deleteOrderHandler(w http.ResponseWriter, r *http.Request)  {
 	}
 	fmt.Println("delete id : ", id);
 	storage.DeleteOrderByUid(id[0])
+
+	wx.CloseWxPayment(id[0])
 
 	ret := GetSuccessJsonString()
 	fmt.Println(ret)
@@ -656,7 +672,7 @@ func OrderQueryTypeByOrderTypeGroupHandler(bodyByte []byte) string{
 	/*查询所有订单*/
 	total, arr := storage.QueryOrderByOrderTypeGroup(requestBody.TypeGroup, requestBody.Offset, requestBody.Length)
 
-	fmt.Println(arr)
+	fmt.Println("total count = ", total)
 
 	entities := make([]entity.Order, 0)
 	for i := 0 ; i < len(arr) ; i ++ {
@@ -665,8 +681,8 @@ func OrderQueryTypeByOrderTypeGroupHandler(bodyByte []byte) string{
 	}
 
 	qRet := &entity.OrderQueryResult{
-		total,
-		entities}
+		Total: total,
+		Entities: entities}
 	rsp, err := json.Marshal(qRet)
 	Error.CheckErr(err)
 	fmt.Print(string(rsp))
